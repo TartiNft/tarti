@@ -14,7 +14,7 @@ contract('Tartist', function(accounts) {
             this.artist = await Tartist.new();
             this.tart = await Tarti.new(this.artist.address);
             //await tart.transferOwnership(this.artist.address);
-            await this.artist.setTartAddr(this.tart.address);        
+            await this.artist.setTartiAddr(this.tart.address);        
         }
     });
 
@@ -26,7 +26,7 @@ contract('Tartist', function(accounts) {
 
     it('test wallet will buy the artist rights', async function() {
         let startBal = web3.utils.toBN(await web3.eth.getBalance(accounts[0]));
-        await this.artist.buyArtist(0, { value: await this.artist.getArtistCurrentPrice(0) });
+        await this.artist.buyRights(0, { value: await this.artist.getCurrentPrice(0) });
         expect(await this.artist.dateSigned(0)).to.be.bignumber.greaterThan(new BN(0));
         expect(startBal).to.be.bignumber.greaterThan(web3.utils.toBN(await web3.eth.getBalance(accounts[0])));
     });
@@ -35,7 +35,7 @@ contract('Tartist', function(accounts) {
         //we need to give away the artist in order to test buying it back
         //first lets set the price to something we know we can afford (for when we buy it back)
         await this.artist.setArtistCurrentPrice(0, new BN(oneEth));
-        expect(await this.artist.getArtistCurrentPrice(0)).to.be.bignumber.equal(new BN(oneEth));
+        expect(await this.artist.getCurrentPrice(0)).to.be.bignumber.equal(new BN(oneEth));
     });
 
     it('test wallet will re-buy the artist rights after giving them away', async function() {
@@ -43,7 +43,7 @@ contract('Tartist', function(accounts) {
         await this.artist.transferFrom(accounts[0], accounts[1], 0);
         expect( accounts[1] ).to.equal(await this.artist.ownerOf(0));
 
-        await this.artist.buyArtist(0, { value: await this.artist.getArtistCurrentPrice(0) });
+        await this.artist.buyRights(0, { value: await this.artist.getCurrentPrice(0) });
         expect( accounts[0] ).to.equal(await this.artist.ownerOf(0));
     });
 
@@ -66,7 +66,7 @@ contract('Tartist', function(accounts) {
         
         //account0 buys back artist
         let startBal = web3.utils.toBN(await web3.eth.getBalance(accounts[1]));
-        await this.artist.buyArtist(0, { value: await this.artist.getArtistCurrentPrice(0) });
+        await this.artist.buyRights(0, { value: await this.artist.getCurrentPrice(0) });
         expect( accounts[0] ).to.equal(await this.artist.ownerOf(0));
 
         //lets see if acct1 got paid proper like
@@ -91,7 +91,7 @@ contract('Tartist', function(accounts) {
     });
 
     it('only i can set tart', async function() {
-        await expectRevert(this.artist.setTartAddr(this.tart.address, {from: accounts[1]}), "Ownable: caller is not the owner");
+        await expectRevert(this.artist.setTartiAddr(this.tart.address, {from: accounts[1]}), "Ownable: caller is not the owner");
     });
     
 });

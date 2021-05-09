@@ -46,7 +46,7 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
     mapping (uint8 => uint32) public dateSigned;
     mapping (uint8 => uint256) public crPrices; //in milliether
     uint256[] private _allTokens;
-    address private _tarts;
+    address private _tarti;
 
     constructor() ERC721("Tarti Artist", "TARTIST") {
         birthdays[0] = 0; //set to 0 for test should be: 1622505600; //Jun 01 2021 GMT DJ Pudding (Instrumental Music Producer)
@@ -114,7 +114,7 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
     //allows sending eth to this contract
     receive() external payable {}
 
-    function getArtistCurrentPrice(uint8 artistId)
+    function getCurrentPrice(uint8 artistId)
     public view returns(uint256)
     {
         require(totalSupply() > artistId, "artist is not born yet");
@@ -139,28 +139,28 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
         return (crPrices[artistId] - subtractFromPrice);
     }
 
-    function buyArtist(uint8 artistId)
+    function buyRights(uint8 artistId)
     public payable nonReentrant {
-        uint256 currentPrice = getArtistCurrentPrice(artistId);
+        uint256 currentPrice = getCurrentPrice(artistId);
         uint256 neededGas; //@todo set based on current rates
 
-        require(currentPrice != 0, "artist is not for sale"); //0 means it is not for sale
-        require(msg.value >= currentPrice, "You did not send enough eth to buy artist");
-        require(totalSupply() > artistId, "artist is not born yet");
-        require(artistId < 10, "this artist will never exist");
+        require(currentPrice != 0, "nosale"); //0 means it is not for sale
+        require(msg.value >= currentPrice, "notenougheth");
+        require(totalSupply() > artistId, "unbornartist");
+        require(artistId < 10, "invalidartist");
 
         //mark it as priceless so no one else can buy it. 
         //if new owner wants to sell it they can change the price using setArtistCurrentPrice
-        _setArtistCurrentPrice(artistId, 0);
+        _setCurrentPrice(artistId, 0);
 
         //pay the owner (if not first signing, else pay the artist owner pay the artistartist)
         if (ownerOf(artistId) != address(this))
         {
             (bool ethSent, bytes memory sendEthData) = payable(ownerOf(artistId)).call{value: msg.value - neededGas}("");
-            require (ethSent, "could not pay the artist owner");
+            require (ethSent, "payunsignedfail");
         } else {
             (bool ethSent, bytes memory sendEthData) = payable(owner()).call{value: msg.value - neededGas}("");
-            require (ethSent, "could not pay the owner");
+            require (ethSent, "payownerfail");
         }
 
         //transfer ownership of the arist's copyrights to the new owner
@@ -183,10 +183,10 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
         {
             newPrice = 10000000 gwei;
         }    
-        _setArtistCurrentPrice(artistId, newPrice);
+        _setCurrentPrice(artistId, newPrice);
     }
 
-    function _setArtistCurrentPrice(uint8 artistId, uint256 newPrice)
+    function _setCurrentPrice(uint8 artistId, uint256 newPrice)
     private {
         crPrices[artistId] = newPrice;
     }
@@ -258,7 +258,7 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
     function newArt(uint8 artistId) payable nonReentrant public {
 
         //address canot be blank
-        require(_tarts != address(0), "tartscontractnotset");
+        require(_tarti != address(0), "tartscontractnotset");
         require (msg.value >= 10000000 gwei, "must send commission"); //.01 eth
 
         //call newArt on the Tart contract
@@ -280,9 +280,9 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
         //the art package url will be based on the Tart tokenId
         //we will own the dns of whatever we use for IPFS so we can pre generate here and guarantee to have it      
 
-        Tarti tart = Tarti(_tarts);
+        Tarti tarti = Tarti(_tarti);
 
-        tart.newArt(msg.sender, artistId, "someipfsurl");
+        tarti.newArt(msg.sender, artistId, "someipfsurl");
 
         artStartedTimes[artistId] = block.timestamp;
 
@@ -299,12 +299,12 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
     //     //so this function would only ever get called on time in history.
     //     //there might be a better approach
     //     Tarti tart = new Tarti();
-    //     _tarts = address(tart);
+    //     _tarti = address(tarti);
     // }
 
-    function setTartAddr(address tartAddr) public onlyOwner
+    function setTartiAddr(address tartiAddr) public onlyOwner
     {
-        _tarts = tartAddr;
+        _tarti = tartiAddr;
     }
 
     function _baseURI() internal pure override returns (string memory) {

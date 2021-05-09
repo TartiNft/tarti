@@ -16,7 +16,7 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
     }
 
     function _baseURI() internal pure override returns (string memory) {
-        return "https://tartscoin.com/tarts/";
+        return "https://tartscoin.com/tarti/";
     }
 
     function tokenURI(uint256 tokenId) public view virtual override(ERC721, ERC721URIStorage) returns (string memory) {
@@ -46,7 +46,7 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
     }
 
     function artByIndex(uint256 index) public view returns (uint256) {
-        require (index < _nextArtId, "specified art doesn't exist");
+        require (index < _nextArtId, "tartinoexist");
         return super.tokenByIndex(index);
     }
 

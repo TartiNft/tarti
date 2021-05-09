@@ -18,10 +18,10 @@ contract('Tarti', function(accounts) {
         //setting this account as owner so can test newArt
         const tart = await Tarti.new(accounts[0]);
 
-        await tartist.setTartAddr(tart.address);        
+        await tartist.setTartiAddr(tart.address);        
 
         await tartist.newArtist(0, "ipfUrltest", web3.utils.fromAscii('abcdefghijklmnop'));
-        await tartist.buyArtist(0, { value: await tartist.getArtistCurrentPrice(0) });
+        await tartist.buyRights(0, { value: await tartist.getCurrentPrice(0) });
 
         //lets make me the owner of the contract to test if it will work when called from the owner
         //although in relaity the tartst contract will always own the tarts contract
@@ -34,9 +34,9 @@ contract('Tarti', function(accounts) {
     it('ERC721 approve and transfer', async function() {
         const tartist = await Tartist.new();
         const tart = await Tarti.new(tartist.address);
-        await tartist.setTartAddr(tart.address);        
+        await tartist.setTartiAddr(tart.address);        
         await tartist.newArtist(0, "ipfUrltest", web3.utils.fromAscii('abcdefghijklmnop'));
-        await tartist.buyArtist(0, { value: await tartist.getArtistCurrentPrice(0) });
+        await tartist.buyRights(0, { value: await tartist.getCurrentPrice(0) });
 
         let commission = new BN(web3.utils.toWei("10000000", "gwei"))
         await tartist.newArt(0, {value: commission});

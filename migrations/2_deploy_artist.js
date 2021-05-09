@@ -7,5 +7,5 @@ module.exports = async function (deployer) {
     await deployer.deploy(Tarti, tartst.address);
     const tarts = await Tarti.deployed();
 
-    await tartst.setTartAddr(tarts.address);
+    await tartst.setTartiAddr(tarts.address);
 }
