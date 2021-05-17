@@ -16,7 +16,21 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
     }
 
     function _baseURI() internal pure override returns (string memory) {
-        return "https://tartscoin.com/tarti/";
+        //ipfs://ipfs.tarti.eth points to an ipns hash
+        //that points to an ipfs folder that has
+        //the implied structure in the uri below
+        return "ipfs://ipfs.tarti.eth/tarti/art/";
+    }
+
+
+    function artJsonURI(uint256 tokenId)
+    public pure returns (string memory) {
+        return _artJsonURI(tokenId);
+    }
+    
+    function _artJsonURI(uint256 tokenId) 
+    private pure returns (string memory) {
+        return string(abi.encodePacked(tokenId, ".json"));
     }
 
     function tokenURI(uint256 tokenId) public view virtual override(ERC721, ERC721URIStorage) returns (string memory) {
@@ -27,13 +41,13 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
         return ERC721URIStorage._burn(tokenId);
     }
 
-    function newArt(address crHolder, uint8 artistId, string memory ipfsId) 
+    function newArt(address crHolder, uint8 artistId) 
     public onlyOwner returns (uint256) {
 
         require (_nextArtId < 1000000, "contracteol");
         uint256 newArtId = _nextArtId;
         _safeMint(crHolder, newArtId);
-        _setTokenURI(newArtId, ipfsId); //setter is part of Zeppelen contract. All it does is check that the token exists and then sets a value for a normal mapping
+        _setTokenURI(newArtId, _artJsonURI(newArtId)); //setter is part of Zeppelen contract. All it does is check that the token exists and then sets a value for a normal mapping
         _createdBy[newArtId] = artistId;
         _artByArtist[artistId][_artistNextArtId[artistId]] = newArtId;
         _nextArtId++;

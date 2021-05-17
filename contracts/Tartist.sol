@@ -103,14 +103,6 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
         return IERC721Receiver.onERC721Received.selector;
     }
 
-    function tokenURI(uint256 tokenId) public view virtual override(ERC721URIStorage) returns (string memory) {
-        return ERC721URIStorage.tokenURI(tokenId);
-    }
-
-    function _burn(uint256 tokenId) internal virtual override(ERC721URIStorage) {
-        return ERC721URIStorage._burn(tokenId);
-    }
-
     //allows sending eth to this contract
     receive() external payable {}
 
@@ -191,6 +183,51 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
         crPrices[artistId] = newPrice;
     }
 
+    function _bytes32ToString(bytes32 _bytes32) public pure returns (string memory) {
+        uint8 i = 0;
+        while(i < 32 && _bytes32[i] != 0) {
+            i++;
+        }
+        bytes memory bytesArray = new bytes(i);
+        for (i = 0; i < 32 && _bytes32[i] != 0; i++) {
+            bytesArray[i] = _bytes32[i];
+        }
+        return string(bytesArray);
+    }
+
+    function _uintToBytes(uint v) private pure returns (bytes32 ret) {
+        if (v == 0) {
+            ret = '0';
+        }
+        else {
+            while (v > 0) {
+                ret = bytes32(uint(ret) / (2 ** 8));
+                ret |= bytes32(((v % 10) + 48) * 2 ** (8 * 31));
+                v /= 10;
+            }
+        }
+        return ret;
+    }
+
+    function _uintToString(uint v) private pure returns (string memory ret) {
+        return _bytes32ToString(_uintToBytes(v));
+    }
+
+    function artistURI(uint256 tokenId)
+    public pure returns (string memory) {
+        return _artistURI(tokenId);
+    }
+    
+    function _artistFilename(uint256 tokenId) 
+    private pure returns (string memory) {
+        return string(abi.encodePacked(_uintToString(tokenId), ".json"));
+    }
+
+    function _artistURI(uint256 tokenId) 
+    private pure returns (string memory) {
+        return string(abi.encodePacked(_baseURI(), _artistFilename(tokenId)));
+    }
+
 //can tokend be the artist signature? (ie traits etc)
 //this should happen automatically now if we have the artists precoded on blockchain
 //this is ablockchain transaction that has a cost.
@@ -199,7 +236,7 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
 //- how do automatically / event based on date?
 //- how is it paid for? (money on the contract?)
 //- how much will it cost?
-    function newArtist(uint8 newArtistId, string memory ipfsId, bytes16 traitChain) 
+    function newArtist(uint8 newArtistId, bytes16 traitChain) 
     public nonReentrant onlyOwner {
 
 //only certain people can mint artists
@@ -234,7 +271,7 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
         //ipfsId is used for the token url. When used with our base url
         //we will return our centralized version of it our our ipfs version of it
         //but same id can be used at pinata.
-        _setTokenURI(newArtistId, ipfsId); //setter is part of Zeppelen contract. All it does is check that the token exists and then sets a value for a normal mapping
+        _setTokenURI(newArtistId, _artistFilename(newArtistId)); //setter is part of Zeppelen contract. All it does is check that the token exists and then sets a value for a normal mapping
 
         //lets keep vital info on-chain
 
@@ -282,7 +319,7 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
 
         Tarti tarti = Tarti(_tarti);
 
-        tarti.newArt(msg.sender, artistId, "someipfsurl");
+        tarti.newArt(msg.sender, artistId);
 
         artStartedTimes[artistId] = block.timestamp;
 
@@ -308,6 +345,8 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
     }
 
     function _baseURI() internal pure override returns (string memory) {
-        return "https://tartscoin.com/tartst/";
+
+        //this points to the /tarti/artists/
+        return "ipfs://ipfs.tarti.eth/tarti/artists/";
     }
 }
