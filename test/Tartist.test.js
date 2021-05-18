@@ -20,7 +20,7 @@ contract('Tartist', function(accounts) {
 
 
     it('newArtist will give birth to an artist', async function() {
-        await this.artist.newArtist(0, "ipfUrltest", web3.utils.fromAscii('abcdefghijklmnop'));
+        await this.artist.newArtist(0, web3.utils.fromAscii('abcdefghijklmnop'));
         expect(await this.artist.totalSupply()).to.be.bignumber.equal(new BN('1'));
     });
 

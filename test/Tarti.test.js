@@ -9,7 +9,7 @@ contract('Tarti', function(accounts) {
         const tartist = await Tartist.new();
         const tart = await Tarti.new(tartist.address);
         //await tart.transferOwnership(tartist.address);
-        await expectRevert(tart.newArt(accounts[0], 0, "ipfUrltest"), "Ownable: caller is not the owner.");
+        await expectRevert(tart.newArt(accounts[0], 0), "Ownable: caller is not the owner.");
     });
 
     it('create new art', async function() {
@@ -20,13 +20,13 @@ contract('Tarti', function(accounts) {
 
         await tartist.setTartiAddr(tart.address);        
 
-        await tartist.newArtist(0, "ipfUrltest", web3.utils.fromAscii('abcdefghijklmnop'));
+        await tartist.newArtist(0, web3.utils.fromAscii('abcdefghijklmnop'));
         await tartist.buyRights(0, { value: await tartist.getCurrentPrice(0) });
 
         //lets make me the owner of the contract to test if it will work when called from the owner
         //although in relaity the tartst contract will always own the tarts contract
 
-        await tart.newArt(accounts[0], 0, "ipfUrltest");
+        await tart.newArt(accounts[0], 0);
         expect( await tartist.totalSupply() ).to.be.bignumber.greaterThan(new BN(0));
 
     });
@@ -35,7 +35,7 @@ contract('Tarti', function(accounts) {
         const tartist = await Tartist.new();
         const tart = await Tarti.new(tartist.address);
         await tartist.setTartiAddr(tart.address);        
-        await tartist.newArtist(0, "ipfUrltest", web3.utils.fromAscii('abcdefghijklmnop'));
+        await tartist.newArtist(0, web3.utils.fromAscii('abcdefghijklmnop'));
         await tartist.buyRights(0, { value: await tartist.getCurrentPrice(0) });
 
         let commission = new BN(web3.utils.toWei("10000000", "gwei"))
