@@ -49,7 +49,7 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
     address private _tarti;
 
     constructor() ERC721("Tarti Artist", "TARTIST") {
-        birthdays[0] = 0; //set to 0 for test should be: 1622505600; //Jun 01 2021 GMT DJ Pudding (Instrumental Music Producer)
+        birthdays[0] = 1522678400; //set to 0 for test should be: 1622505600; //Jun 01 2021 GMT DJ Pudding (Instrumental Music Producer)
         birthdays[1] = 1622678400; //set to 0 for test should be: 1622678400; Jun 03 2021 GMT DJ Deadeye Dick (Instrumental Music Producer)
         birthdays[2] = 1623715200; //Jun 15 2021 GMT Gemini Dank (Songwriter?)
         birthdays[3] = 1624579200; //Jun 25 2021 GMT So So Pica (Digital Painter (stills))
@@ -183,7 +183,8 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
         crPrices[artistId] = newPrice;
     }
 
-    function _bytes32ToString(bytes32 _bytes32) public pure returns (string memory) {
+    function _bytes32ToString(bytes32 _bytes32) 
+    private pure returns (string memory) {
         uint8 i = 0;
         while(i < 32 && _bytes32[i] != 0) {
             i++;
@@ -195,7 +196,8 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
         return string(bytesArray);
     }
 
-    function _uintToBytes(uint v) private pure returns (bytes32 ret) {
+    function _uintToBytes(uint v) 
+    private pure returns (bytes32 ret) {
         if (v == 0) {
             ret = '0';
         }
@@ -209,7 +211,8 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
         return ret;
     }
 
-    function _uintToString(uint v) private pure returns (string memory ret) {
+    function _uintToString(uint v) 
+    private pure returns (string memory ret) {
         return _bytes32ToString(_uintToBytes(v));
     }
 
@@ -268,9 +271,6 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
         _nextArtistId++;
         _safeMint(ownerAddress, newArtistId);
 
-        //ipfsId is used for the token url. When used with our base url
-        //we will return our centralized version of it our our ipfs version of it
-        //but same id can be used at pinata.
         _setTokenURI(newArtistId, _artistFilename(newArtistId)); //setter is part of Zeppelen contract. All it does is check that the token exists and then sets a value for a normal mapping
 
         //lets keep vital info on-chain
@@ -290,6 +290,17 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
 
         //some data can go off-chain
         // artist name, birthdate, image urls, html url, etc
+    }
+
+    function nextArtTime(uint8 artistId) 
+    public view returns (uint256) {
+        uint256 nextArt = artStartedTimes[artistId] + (writersBlocks[artistId] * 60);
+
+        if (nextArt < birthdays[artistId])
+        {
+            nextArt = birthdays[artistId];
+        }
+        return nextArt;
     }
 
     function newArt(uint8 artistId) payable nonReentrant public {
