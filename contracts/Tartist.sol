@@ -119,7 +119,7 @@ contract Tartist is ERC721URIStorage, IERC721Receiver, ReentrancyGuard, Ownable 
         //if the artist have never been signed
         //then their price goes down over time
         if ((dateSigned[artistId] == 0) && (block.timestamp > birthdays[artistId])) {
-            subtractFromPrice = (block.timestamp - birthdays[artistId]) * 500000 wei;
+            subtractFromPrice = (block.timestamp - birthdays[artistId]) * 10000 gwei;
         }
 
         //unsigned artists cant sell for less than 10000000 gwei (.01 eth)
