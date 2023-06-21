@@ -1,88 +1,79 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./Tarti.sol";
 
 contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
-    uint256 private _nextArtId;
-    mapping (uint256 => uint8) public _createdBy;
-    mapping (uint8 => uint256) public _artistNextArtId;
+    using Counters for Counters.Counter;
+
+    Counters.Counter private _currentTokenId;
+    mapping(uint8 => uint256) public _artistNextArtId;
+
+    /// @dev Base token URI used as a prefix by tokenURI().
+    string public baseTokenURI;
     mapping(uint8 => mapping(uint256 => uint256)) private _artByArtist;
 
-    constructor(address artistContract) ERC721("Tarti Art", "TARTI") {
-        transferOwnership(artistContract);
-    }
-
-    function _baseURI() internal pure override returns (string memory) {
+    constructor() ERC721("Tarti Art", "TARTI") {
         //ipfs://ipfs.tarti.eth points to an ipns hash
         //that points to an ipfs folder that has
         //the implied structure in the uri below
-        return "ipfs://ipfs.tarti.eth/tarti/art/";
+        baseTokenURI = "ipfs://ipfs.tarti.eth/tarti/art/";
     }
 
-
-    function artJsonURI(uint256 tokenId)
-    public pure returns (string memory) {
-        return _artJsonURI(tokenId);
-    }
-    
-    function _artJsonURI(uint256 tokenId) 
-    private pure returns (string memory) {
-        return string(abi.encodePacked(tokenId, ".json"));
-    }
-
-    function tokenURI(uint256 tokenId) public view virtual override(ERC721, ERC721URIStorage) returns (string memory) {
-        return ERC721URIStorage.tokenURI(tokenId);
-    }
-
-    function _burn(uint256 tokenId) internal virtual override(ERC721, ERC721URIStorage) {
-        return ERC721URIStorage._burn(tokenId);
-    }
-
-    function newArt(address crHolder, uint8 artistId) 
-    public onlyOwner returns (uint256) {
-
-        require (_nextArtId < 1000000, "contracteol");
-        uint256 newArtId = _nextArtId;
-        _safeMint(crHolder, newArtId);
-        _setTokenURI(newArtId, _artJsonURI(newArtId)); //setter is part of Zeppelen contract. All it does is check that the token exists and then sets a value for a normal mapping
-        _createdBy[newArtId] = artistId;
+    function newArt(
+        address crHolder,
+        uint8 artistId
+    ) public onlyOwner returns (uint256) {
+        _currentTokenId.increment();
+        uint256 newArtId = _currentTokenId.current();
         _artByArtist[artistId][_artistNextArtId[artistId]] = newArtId;
-        _nextArtId++;
         _artistNextArtId[artistId]++;
-
-        // (bool ethSent, bytes memory sendEthData) = payable(owner()).call{value: msg.value}("");
-        // require(ethSent, "Unable to transfer payment to artist contract");
-
+        _safeMint(crHolder, newArtId);
         return newArtId;
     }
 
-    function artByIndex(uint256 index) public view returns (uint256) {
-        require (index < _nextArtId, "tartinoexist");
-        return super.tokenByIndex(index);
-    }
-
     //this can be used to iterate through the art of a specific artist
-    function artByArtist(uint8 artistId, uint256 artOrdinal) public view returns (uint256) {
-        return artByIndex(_artByArtist[artistId][artOrdinal]);
+    function artByArtist(
+        uint8 artistId,
+        uint256 artOrdinal
+    ) public view returns (uint256) {
+        return tokenByIndex(_artByArtist[artistId][artOrdinal]);
     }
 
-    //figure out how to ensure that only the owner can transfer it
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId)
-        internal
-        override(ERC721, ERC721Enumerable)
-    {
-        ERC721Enumerable._beforeTokenTransfer(from, to, tokenId);
+    /// @dev Returns an URI for a given token ID
+    function _baseURI() internal view virtual override returns (string memory) {
+        return baseTokenURI;
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ERC721, ERC721Enumerable)
-        returns (bool)
-    {
-        return ERC721Enumerable.supportsInterface(interfaceId);
+    function _burn(
+        uint256 tokenId
+    ) internal override(ERC721, ERC721URIStorage) {
+        super._burn(tokenId);
+    }
+
+    function tokenURI(
+        uint256 tokenId
+    ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
+        //I have a hunch the default impleemattn does this exact same thing so maybe we just use it??
+        return string.concat(baseTokenURI, Strings.toString(tokenId));
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 firstTokenId,
+        uint256 batchSize
+    ) internal override(ERC721, ERC721Enumerable) {
+        super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC721Enumerable, ERC721URIStorage) returns (bool) {
+        return super.supportsInterface(interfaceId);
     }
 }
