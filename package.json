@@ -15,5 +15,7 @@
     "chai": "^4.3.4",
     "truffle": "^5.3.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "solc": "^0.8.20"
+  }
 }
