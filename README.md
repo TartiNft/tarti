@@ -20,7 +20,7 @@
 <div align="center">
 <br />
 
-[![Project license](https://img.shields.io/github/license/evandelacruz/tarti)](LICENSE) ![Commit Activity](https://img.shields.io/github/commit-activity/t/evandelacruz/tarti/main)
+[![Project license](https://img.shields.io/github/license/evandelacruz/tarti)](LICENSE) ![Commit Activity](https://img.shields.io/github/commit-activity/t/evandelacruz/tarti/dev)
 
 </div>
 
