@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/security/PullPayment.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Tarti.sol";
 
-contract Tartist is ERC721URIStorage, PullPayment, Ownable {
+contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     using Counters for Counters.Counter;
 
     uint256 public constant MINT_TARTIST_PRICE = 0.18 ether;
@@ -121,20 +121,29 @@ contract Tartist is ERC721URIStorage, PullPayment, Ownable {
         super.withdrawPayments(payee);
     }
 
-    function _burn(uint256 tokenId) internal override(ERC721URIStorage) {
+    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
         super._burn(tokenId);
     }
 
     function tokenURI(
         uint256 tokenId
-    ) public view override(ERC721URIStorage) returns (string memory) {
+    ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
         //I have a hunch the default impleemattn does this exact same thing so maybe we just use super.tokenuri??
         return string.concat(baseTokenURI, Strings.toString(tokenId));
     }
 
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 firstTokenId,
+        uint256 batchSize
+    ) internal override(ERC721, ERC721Enumerable) {
+        super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
+    }
+
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(ERC721URIStorage) returns (bool) {
+    ) public view override(ERC721Enumerable, ERC721URIStorage) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }
