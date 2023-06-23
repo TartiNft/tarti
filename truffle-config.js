@@ -94,7 +94,7 @@ module.exports = {
           enabled: true,
           runs: 10
         },
-        evmVersion: "shanghai"
+        evmVersion: "paris"
       }
     }
   },
