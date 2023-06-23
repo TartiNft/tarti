@@ -14,23 +14,55 @@ contract Tartist is ERC721URIStorage, PullPayment, Ownable {
     uint256 public constant MINT_TARTI_PRICE = 0.048 ether;
 
     Counters.Counter private _currentTokenId;
-    address private _tartiAddr;
 
     /// @dev Base token URI used as a prefix by tokenURI().
     string public baseTokenURI;
+    mapping(bytes2 => bool) public allTraits;
+    mapping(bytes32 => bool) public usedTraitComboHashes;
+    mapping(uint256 => bytes) public botTraits;
+    mapping(uint256 => string[]) public botTraitDynValues;
+    mapping(uint256 => uint8[]) public botTraitDominance;
+
+    address private _tartiAddr;
 
     constructor() ERC721("Tarti Artist", "TARTIST") {
         baseTokenURI = "ipfs://ipfs.tarti.eth/tarti/artists/";
     }
 
-    function mintTo(address recipient) public payable returns (uint256) {
+    function giveBirth(
+        address recipient,
+        bytes memory traits,
+        string[] memory dynamicTraitValues,
+        uint8[] memory traitDominance
+    ) public payable returns (uint256) {
         require(
             msg.value == MINT_TARTIST_PRICE,
             "Transaction value did not equal the mint price"
         );
 
+        bytes memory dynTraitValuesBytes;
+
+        for (uint256 i = 0; i < dynamicTraitValues.length; i++) {
+            dynTraitValuesBytes = abi.encodePacked(
+                dynTraitValuesBytes,
+                dynamicTraitValues[i]
+            );
+        }
+
+        bytes32 botTraitsHash = keccak256(
+            bytes.concat(traits, dynTraitValuesBytes)
+        );
+        require(
+            usedTraitComboHashes[botTraitsHash] != true,
+            "Bot genetics are not unique enough"
+        );
+
+        usedTraitComboHashes[botTraitsHash] = true;
         _currentTokenId.increment();
         uint256 newItemId = _currentTokenId.current();
+        botTraits[newItemId] = traits;
+        botTraitDynValues[newItemId] = dynamicTraitValues;
+        botTraitDominance[newItemId] = traitDominance;
         _safeMint(recipient, newItemId);
         return newItemId;
     }
@@ -96,7 +128,7 @@ contract Tartist is ERC721URIStorage, PullPayment, Ownable {
     function tokenURI(
         uint256 tokenId
     ) public view override(ERC721URIStorage) returns (string memory) {
-        //I have a hunch the default impleemattn does this exact same thing so maybe we just use it??
+        //I have a hunch the default impleemattn does this exact same thing so maybe we just use super.tokenuri??
         return string.concat(baseTokenURI, Strings.toString(tokenId));
     }
 
