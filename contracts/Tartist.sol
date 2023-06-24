@@ -99,10 +99,10 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         return newItemId;
     }
 
-    function newArt(uint8 artistId) public payable {
+    function newArt(uint8 artistId) public payable returns (uint256) {
         //address canot be blank
         require(_tartiAddr != address(0), "tartscontractnotset");
-        require(msg.value == MINT_TARTIST_PRICE, "must send commission"); //.01 eth
+        require(msg.value == MINT_TARTI_PRICE, "must send commission"); //.01 eth
 
         //call newArt on the Tarti contract
         //Tarti only allows this contract to call that method
@@ -122,7 +122,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
 
         Tarti tarti = Tarti(_tartiAddr);
 
-        tarti.newArt(msg.sender, artistId);
+        return tarti.newArt(msg.sender, artistId);
     }
 
     /// @dev Returns an URI for a given token ID
