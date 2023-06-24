@@ -2,10 +2,11 @@ const Tartist = artifacts.require("Tartist");
 const Tarti = artifacts.require("Tarti");
 module.exports = async function (deployer) {
     await deployer.deploy(Tartist);
-    const tartst = await Tartist.deployed();
+    const tartistContract = await Tartist.deployed();
 
     await deployer.deploy(Tarti);
-    const tarts = await Tarti.deployed();
+    const tartiContract = await Tarti.deployed();
 
-    await tartst.setTartiAddr(tarts.address);
+    await tartistContract.setTartiAddr(tartiContract.address);
+    await tartiContract.transferOwner(tartistContract.address);
 }
