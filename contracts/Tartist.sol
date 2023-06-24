@@ -49,6 +49,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         // allTraits["bb"] = true;
         // allTraits["cc"] = true;
 
+        //check that the passed traits are valid
         //every two bytes identifes a trait
         for (uint256 i = 0; i < traits.length; i += 2) {
             require(
@@ -58,8 +59,6 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
             );
         }
 
-        //check that the passed traits are valid
-        
         bytes memory dynTraitValuesBytes;
         for (uint256 i = 0; i < dynamicTraitValues.length; i++) {
             dynTraitValuesBytes = abi.encodePacked(
