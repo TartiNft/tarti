@@ -17,7 +17,8 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
 
     /// @dev Base token URI used as a prefix by tokenURI().
     string public baseTokenURI;
-    mapping(bytes2 => bool) public allTraits;
+    bytes2[] public allTraits;
+    mapping(bytes2 => bool) public traitsActive;
     mapping(bytes32 => bool) public usedTraitComboHashes;
     mapping(uint256 => bytes) public botTraits;
     mapping(uint256 => string[]) public botTraitDynValues;
@@ -30,7 +31,12 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     }
 
     function addTrait(bytes2 traitCode) public onlyOwner {
-        allTraits[traitCode] = true;
+        traitsActive[traitCode] = true;
+        allTraits.push(traitCode);
+    }
+
+    function cancelTrait(bytes2 traitCode) public onlyOwner {
+        traitsActive[traitCode] = false;
     }
 
     function giveBirth(
@@ -57,7 +63,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         //every two bytes identifes a trait
         for (uint256 i = 0; i < traits.length; i += 2) {
             require(
-                allTraits[bytes2(bytes.concat(traits[i], traits[i + 1]))] ==
+                traitsActive[bytes2(bytes.concat(traits[i], traits[i + 1]))] ==
                     true,
                 "Invalid trait specified"
             );
