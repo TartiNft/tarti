@@ -29,6 +29,10 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         baseTokenURI = "ipfs://ipfs.tarti.eth/tarti/artists/";
     }
 
+    function addTrait(bytes2 traitCode) public onlyOwner {
+        allTraits[traitCode] = true;
+    }
+
     function giveBirth(
         address recipient,
         bytes memory traits,
@@ -81,7 +85,10 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         botTraitDynValues[newItemId] = dynamicTraitValues;
         botTraitDominance[newItemId] = traitDominance;
         _safeMint(recipient, newItemId);
-        _setTokenURI(newItemId, string.concat(Strings.toString(newItemId), ".json"));
+        _setTokenURI(
+            newItemId,
+            string.concat(Strings.toString(newItemId), ".json")
+        );
         return newItemId;
     }
 
@@ -165,5 +172,4 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
         return ERC721URIStorage.tokenURI(tokenId);
     }
-
 }
