@@ -42,7 +42,12 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         require(traits.length < 100, "Too many traits");
         require(dynamicTraitValues.length < 100, "Too many trait values");
         require(traitDominance.length < 100, "Too many trait dominance");
-        require(traits.length % 2 != 0, "Invalid trait length");
+        require(traits.length % 2 == 0, "Invalid trait length");
+
+        // when we implement the allTraits/AddTraits here is how they should be keyed
+        // allTraits["aa"] = true;
+        // allTraits["bb"] = true;
+        // allTraits["cc"] = true;
 
         //every two bytes identifes a trait
         for (uint256 i = 0; i < traits.length; i += 2) {
