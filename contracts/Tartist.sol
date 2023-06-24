@@ -81,6 +81,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         botTraitDynValues[newItemId] = dynamicTraitValues;
         botTraitDominance[newItemId] = traitDominance;
         _safeMint(recipient, newItemId);
+        _setTokenURI(newItemId, string.concat(Strings.toString(newItemId), ".json"));
         return newItemId;
     }
 
@@ -142,13 +143,6 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         uint256 tokenId
     ) internal override(ERC721, ERC721URIStorage) {
         super._burn(tokenId);
-    }
-
-    function tokenURI(
-        uint256 tokenId
-    ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
-        //I have a hunch the default impleemattn does this exact same thing so maybe we just use super.tokenuri??
-        return string.concat(baseTokenURI, Strings.toString(tokenId));
     }
 
     function _beforeTokenTransfer(
