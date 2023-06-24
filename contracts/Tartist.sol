@@ -39,16 +39,27 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
             msg.value == MINT_TARTIST_PRICE,
             "Transaction value did not equal the mint price"
         );
+        require(traits.length < 100, "Too many traits");
+        require(dynamicTraitValues.length < 100, "Too many trait values");
+        require(traitDominance.length < 100, "Too many trait dominance");
+        require(traits.length % 2 != 0, "Invalid trait length");
+
+        //every two bytes identifes a trait
+        for (uint256 i = 0; i < traits.length; i += 2) {
+            require(
+                allTraits[bytes2(bytes.concat(traits[i], traits[i + 1]))] ==
+                    true,
+                "Invalid trait specified"
+            );
+        }
 
         bytes memory dynTraitValuesBytes;
-
         for (uint256 i = 0; i < dynamicTraitValues.length; i++) {
             dynTraitValuesBytes = abi.encodePacked(
                 dynTraitValuesBytes,
                 dynamicTraitValues[i]
             );
         }
-
         bytes32 botTraitsHash = keccak256(
             bytes.concat(traits, dynTraitValuesBytes)
         );
@@ -121,7 +132,9 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         super.withdrawPayments(payee);
     }
 
-    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+    function _burn(
+        uint256 tokenId
+    ) internal override(ERC721, ERC721URIStorage) {
         super._burn(tokenId);
     }
 
