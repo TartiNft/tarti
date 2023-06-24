@@ -31,6 +31,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     }
 
     function addTrait(bytes2 traitCode) public onlyOwner {
+        require(traitsActive[traitCode] == false, "Trait already exists");
         traitsActive[traitCode] = true;
         allTraits.push(traitCode);
     }
@@ -122,13 +123,6 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         Tarti tarti = Tarti(_tartiAddr);
 
         tarti.newArt(msg.sender, artistId);
-
-        //original artistastist gets the commission
-        //for now that is always the owner of the artist contract but we night change that
-        (bool ethSent, bytes memory sendEthData) = payable(owner()).call{
-            value: msg.value
-        }("");
-        require(ethSent, "could not pay the owner");
     }
 
     /// @dev Returns an URI for a given token ID
