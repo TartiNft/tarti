@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
@@ -40,6 +40,8 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
             "Transaction value did not equal the mint price"
         );
 
+        //check that the passed traits are valid
+        
         bytes memory dynTraitValuesBytes;
 
         for (uint256 i = 0; i < dynamicTraitValues.length; i++) {
