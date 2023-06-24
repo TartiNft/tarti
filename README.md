@@ -31,6 +31,7 @@
   - [Tartist](#tartist)
   - [Tarti](#tarti)
   - [Off-chain Interactions](#off-chain-interactions)
+  - [Dapp](#dapp)
   - [System Diagram](#system-diagram)
   - [Token rights](#token-rights)
   - [Built With](#built-with)
@@ -65,6 +66,9 @@ A Tarti is an NFT. As of now, Tartis are all music and related files.
 
 ### Off-chain Interactions
 When a Tartist or Tarti is minted, an off chain service will create the related multimedia and store it on IPFS at tarti.eth, which will be linked by the NFTs metadata.
+
+### Dapp
+A Dapp to interact with these contracts can be found at [Github](http://github.com/evandelacruz/tartiweb)
 
 ### System Diagram
 !["High level diagram of the Tarti system"](tarti-high-diagram.svg "System Diagram")
