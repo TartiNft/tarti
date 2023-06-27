@@ -8,5 +8,5 @@ module.exports = async function (deployer) {
     const tartiContract = await Tarti.deployed();
 
     await tartistContract.setTartiAddr(tartiContract.address);
-    await tartiContract.transferOwner(tartistContract.address);
+    await tartiContract.transferOwnership(tartistContract.address);
 }

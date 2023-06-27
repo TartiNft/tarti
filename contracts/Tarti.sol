@@ -17,11 +17,17 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
     string public baseTokenURI;
     mapping(uint8 => mapping(uint256 => uint256)) private _artByArtist;
 
+    bytes32 private constant _newMetadataCid = "QhashOfNewTartistMetadata";
+    bytes32 private constant _inProcessMetadataCid = "QhashOfCreatingTartistMetadata";
+
     constructor() ERC721("Tarti Art", "TARTI") {
         //ipfs://ipfs.tarti.eth points to an ipns hash
         //that points to an ipfs folder that has
         //the implied structure in the uri below
-        baseTokenURI = "ipfs://ipfs.tarti.eth/tarti/art/";
+        //baseTokenURI = "ipfs://ipfs.tarti.eth/tarti/art/";
+
+        //decided not to use ipns or ens and just use the raw hashes
+        baseTokenURI = "ipfs://";
     }
 
     function newArt(
@@ -44,9 +50,17 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
         return tokenByIndex(_artByArtist[artistId][artOrdinal]);
     }
 
-    /// @dev Returns an URI for a given token ID
-    function _baseURI() internal view virtual override returns (string memory) {
-        return baseTokenURI;
+
+    function setCreationStarted(uint256 tokenId) public onlyOwner() {
+        _setTokenURI(tokenId, string(abi.encodePacked(_inProcessMetadataCid)));
+    }
+
+    function setCreated(uint256 tokenId, string memory cid) public onlyOwner() {
+        //Don't allow the URI to ever change once it is set!
+        bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant copare strings so lets compare hashes of strings
+        if (tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataCid)) || tokenUriBytesHash == keccak256(abi.encodePacked(_inProcessMetadataCid))) {
+            _setTokenURI(tokenId, string(abi.encodePacked(cid)));
+        }
     }
 
     function _burn(

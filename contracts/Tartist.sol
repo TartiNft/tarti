@@ -15,7 +15,6 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
 
     Counters.Counter private _currentTokenId;
 
-    /// @dev Base token URI used as a prefix by tokenURI().
     string public baseTokenURI;
     bytes2[] public allTraits;
     mapping(bytes2 => bool) public traitsActive;
@@ -25,9 +24,11 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     mapping(uint256 => uint8[]) public botTraitDominance;
 
     address private _tartiAddr;
+    bytes32 private constant _newMetadataCid = "QhashOfNewTartistMetadata";
+    bytes32 private constant _inProcessMetadataCid = "QhashOfCreatingTartistMetadata";
 
     constructor() ERC721("Tarti Artist", "TARTIST") {
-        baseTokenURI = "ipfs://ipfs.tarti.eth/tarti/artists/";
+        baseTokenURI = "ipfs://";
     }
 
     function addTrait(bytes2 traitCode) public onlyOwner {
@@ -38,6 +39,8 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
 
     function cancelTrait(bytes2 traitCode) public onlyOwner {
         traitsActive[traitCode] = false;
+
+        //doesnt provide any use to remove it from allTraits, waste of gas. So we will just leave it.
     }
 
     function giveBirth(
@@ -70,6 +73,8 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
             );
         }
 
+//can optimize the heck out of this stuff but resisting for now.
+//Dont set storage vars in loops!
         bytes memory dynTraitValuesBytes;
         for (uint256 i = 0; i < dynamicTraitValues.length; i++) {
             dynTraitValuesBytes = abi.encodePacked(
@@ -92,16 +97,13 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         botTraitDynValues[newItemId] = dynamicTraitValues;
         botTraitDominance[newItemId] = traitDominance;
         _safeMint(recipient, newItemId);
-        _setTokenURI(
-            newItemId,
-            string.concat(Strings.toString(newItemId), ".json")
-        );
+        _setTokenURI(newItemId, string(abi.encodePacked(_newMetadataCid)));
         return newItemId;
     }
 
     function newArt(uint8 artistId) public payable returns (uint256) {
         //address canot be blank
-        require(_tartiAddr != address(0), "tartscontractnotset");
+        require(_tartiAddr != address(0), "tarticontractnotset");
         require(msg.value == MINT_TARTI_PRICE, "must send commission"); //.01 eth
 
         //call newArt on the Tarti contract
@@ -135,8 +137,30 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     }
 
     /// @dev Sets the base token URI prefix.
-    function setBaseTokenURI(string memory _baseTokenURI) public onlyOwner {
-        baseTokenURI = _baseTokenURI;
+    function setBaseTokenURI(string memory newBaseTokenURI) public onlyOwner {
+        baseTokenURI = newBaseTokenURI;
+    }
+
+    function setCreationStarted(uint256 tokenId, bool onTarti) public onlyOwner() {
+        if (onTarti) {
+            require(_tartiAddr != address(0), "tarticontractnotset");
+            Tarti tarti = Tarti(_tartiAddr);
+            return tarti.setCreationStarted(tokenId);
+        }
+        _setTokenURI(tokenId, string(abi.encodePacked(_inProcessMetadataCid)));
+    }
+
+    function setCreated(uint256 tokenId, bytes32 cid, bool onTarti) public onlyOwner() {
+        if (onTarti) {
+            require(_tartiAddr != address(0), "tarticontractnotset");
+            Tarti tarti = Tarti(_tartiAddr);
+            return tarti.setCreated(tokenId, string(abi.encodePacked(cid)));
+        }
+        //Don't allow the URI to ever change once it is set!
+        bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant copare strings so lets compare hashes of strings
+        if (tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataCid)) || tokenUriBytesHash == keccak256(abi.encodePacked(_inProcessMetadataCid))) {
+            _setTokenURI(tokenId, string(abi.encodePacked(cid)));
+        }
     }
 
     /// @dev Overridden in order to make it an onlyOwner function
