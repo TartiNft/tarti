@@ -53,8 +53,8 @@ module.exports = {
       network_id: "*",       // Any network (default: none)
     },
     azuretest: {
-      host: "10.0.1.4",
-      port: 7545,
+      host: "10.1.0.4",
+      port: 7575,
       network_id: "*",
     },
     // Another network with more advanced options...
