@@ -1,0 +1,25 @@
+- file pathing uris ipns all that shit
+Stuck on this forever. Shold I use a folder with regiular file names and crerate new folders each time and use IPNS to repoint?
+Or should I just update the token URI after creating the media. <-- this is what I finally decided
+Factors in my choice:
+- Easy to do in Pinata without my own Node
+- My conern of using the hash in the url is no biggie as the main pinata example does exactly that (although they do it at mint time)
+- Drawback: Its gonna cost me each time
+Shit I actually prefer the other method. Its cooler. Lets use use trait.eth. 
+Looked again.. its just too much hassle.. Back to same decision. We will use CIds and set after mint.
+
+- Ethereum Solana or Polygon
+Decided on Ethereum, as it looks like Eth2 and future sharding etc will continue to improve
+ethereum. Also ethereum is just taken a bit more serious. Very possible eth2 optimizations
+kill matic and sol. 
+
+- the whole infra thing for the backend services
+Lets say we have two services. 
+One for creating music and one for handling blockchain events.
+When the block chain event handler gets an event he will queue it.
+The worker will create art from that queued item using the music service.
+The music service will take many minutes to handle a call so it needs to be async.
+So the big question becomes, how does the worker get the response?
+He could just ask syncronously. To me that makes the most sense... BUT...
+if the interface is http, is that a problem? Are we allowed to just wait around for a long running http call?
+
