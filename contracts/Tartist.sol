@@ -12,40 +12,55 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
 
     uint256 public constant MINT_TARTIST_PRICE = 0.18 ether;
     uint256 public constant MINT_TARTI_PRICE = 0.048 ether;
+    bytes32 private constant _newMetadataCid = "QhashOfNewTartistMetadata";
+    bytes32 private constant _inProcessMetadataCid =
+        "QhashOfCreatingTartistMetadata";
+    mapping(bytes32 => bool) private _usedTraitComboHashes;
+
+    uint256[] public allTraits;
+    mapping(uint256 => uint256[]) public botTraits;
+    mapping(uint256 => uint256[]) public botTraitDominances;
+    mapping(uint256 => string) public availableTraits;
+    mapping(uint256 => string[]) public botTraitValues;
+    string public baseTokenURI;
 
     Counters.Counter private _currentTokenId;
-
-    string public baseTokenURI;
-    bytes2[] public allTraits;
-    mapping(bytes2 => bool) public traitsActive;
-    mapping(bytes32 => bool) public usedTraitComboHashes;
-    mapping(uint256 => bytes) public botTraits;
-    mapping(uint256 => string[]) public botTraitDynValues;
-    mapping(uint256 => uint8[]) public botTraitDominance;
-
     address private _tartiAddr;
-    bytes32 private constant _newMetadataCid = "QhashOfNewTartistMetadata";
-    bytes32 private constant _inProcessMetadataCid = "QhashOfCreatingTartistMetadata";
 
     constructor() ERC721("Tarti Artist", "TARTIST") {
         baseTokenURI = "ipfs://";
     }
 
-    function addTrait(bytes2 traitCode) public onlyOwner {
-        require(traitsActive[traitCode] == false, "Trait already exists");
-        traitsActive[traitCode] = true;
+    /**
+        `traitName` will either be:
+        - The name of the Trait class (ie MusicProducer)
+        - The name of the Trait with underscore then the name of the trait prop appended (ie DynMusicProductionStyle_FavoriteKeys)
+        -- In this case the TraitAI trait being added to the bot is DynMusicProductionStyle, 
+        -- and the prop the value wll map to is FavoriteKeys.
+        -- This flat structure will be nice for the NFT metadata to be standard and easy.
+        -- When it gets sent into the TraitHttpIO we will need to pull out the props and put them all beneath the same single trait.
+     */
+    function addTrait(
+        uint256 traitCode,
+        string memory traitName
+    ) public onlyOwner {
+        require(
+            bytes(availableTraits[traitCode]).length > 0,
+            "Trait already exists"
+        );
+        availableTraits[traitCode] = traitName;
         allTraits.push(traitCode);
     }
 
-    function cancelTrait(bytes2 traitCode) public onlyOwner {
-        traitsActive[traitCode] = false;
+    function cancelTrait(uint256 traitCode) public onlyOwner {
+        availableTraits[traitCode] = "";
 
         //doesnt provide any use to remove it from allTraits, waste of gas. So we will just leave it.
     }
 
     function giveBirth(
         address recipient,
-        bytes memory traits,
+        uint256[] memory traits,
         string[] memory dynamicTraitValues,
         uint8[] memory traitDominance
     ) public payable returns (uint256) {
@@ -56,25 +71,22 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         require(traits.length < 100, "Too many traits");
         require(dynamicTraitValues.length < 100, "Too many trait values");
         require(traitDominance.length < 100, "Too many trait dominance");
-        require(traits.length % 2 == 0, "Invalid trait length");
-
-        // when we implement the allTraits/AddTraits here is how they should be keyed
-        // allTraits["aa"] = true;
-        // allTraits["bb"] = true;
-        // allTraits["cc"] = true;
 
         //check that the passed traits are valid
-        //every two bytes identifes a trait
-        for (uint256 i = 0; i < traits.length; i += 2) {
+        for (uint256 i = 0; i < traits.length; i++) {
             require(
-                traitsActive[bytes2(bytes.concat(traits[i], traits[i + 1]))] ==
-                    true,
+                bytes(availableTraits[traits[i]]).length > 0,
                 "Invalid trait specified"
             );
         }
 
-//can optimize the heck out of this stuff but resisting for now.
-//Dont set storage vars in loops!
+        //can optimize the heck out of this stuff but resisting for now.
+        //Dont set storage vars in loops!
+        bytes memory traitBytes;
+        for (uint256 i = 0; i < traits.length; i++) {
+            traitBytes = abi.encodePacked(traitBytes, traits[i]);
+        }
+
         bytes memory dynTraitValuesBytes;
         for (uint256 i = 0; i < dynamicTraitValues.length; i++) {
             dynTraitValuesBytes = abi.encodePacked(
@@ -83,19 +95,19 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
             );
         }
         bytes32 botTraitsHash = keccak256(
-            bytes.concat(traits, dynTraitValuesBytes)
+            bytes.concat(traitBytes, dynTraitValuesBytes)
         );
         require(
-            usedTraitComboHashes[botTraitsHash] != true,
+            _usedTraitComboHashes[botTraitsHash] != true,
             "Bot genetics are not unique enough"
         );
 
-        usedTraitComboHashes[botTraitsHash] = true;
+        _usedTraitComboHashes[botTraitsHash] = true;
         _currentTokenId.increment();
         uint256 newItemId = _currentTokenId.current();
         botTraits[newItemId] = traits;
-        botTraitDynValues[newItemId] = dynamicTraitValues;
-        botTraitDominance[newItemId] = traitDominance;
+        botTraitValues[newItemId] = dynamicTraitValues;
+        botTraitDominances[newItemId] = traitDominance;
         _safeMint(recipient, newItemId);
         _setTokenURI(newItemId, string(abi.encodePacked(_newMetadataCid)));
         return newItemId;
@@ -141,7 +153,10 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         baseTokenURI = newBaseTokenURI;
     }
 
-    function setCreationStarted(uint256 tokenId, bool onTarti) public onlyOwner() {
+    function setCreationStarted(
+        uint256 tokenId,
+        bool onTarti
+    ) public onlyOwner {
         if (onTarti) {
             require(_tartiAddr != address(0), "tarticontractnotset");
             Tarti tarti = Tarti(_tartiAddr);
@@ -150,7 +165,11 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         _setTokenURI(tokenId, string(abi.encodePacked(_inProcessMetadataCid)));
     }
 
-    function setCreated(uint256 tokenId, bytes32 cid, bool onTarti) public onlyOwner() {
+    function setCreated(
+        uint256 tokenId,
+        bytes32 cid,
+        bool onTarti
+    ) public onlyOwner {
         if (onTarti) {
             require(_tartiAddr != address(0), "tarticontractnotset");
             Tarti tarti = Tarti(_tartiAddr);
@@ -158,7 +177,11 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         }
         //Don't allow the URI to ever change once it is set!
         bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant copare strings so lets compare hashes of strings
-        if (tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataCid)) || tokenUriBytesHash == keccak256(abi.encodePacked(_inProcessMetadataCid))) {
+        if (
+            tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataCid)) ||
+            tokenUriBytesHash ==
+            keccak256(abi.encodePacked(_inProcessMetadataCid))
+        ) {
             _setTokenURI(tokenId, string(abi.encodePacked(cid)));
         }
     }
