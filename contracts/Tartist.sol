@@ -12,8 +12,8 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
 
     uint256 public constant MINT_TARTIST_PRICE = 0.18 ether;
     uint256 public constant MINT_TARTI_PRICE = 0.048 ether;
-    bytes32 private constant _newMetadataCid = "QhashOfNewTartistMetadata";
-    bytes32 private constant _inProcessMetadataCid =
+    bytes private constant _newMetadataCid = "QhashOfNewTartistMetadata";
+    bytes private constant _inProcessMetadataCid =
         "QhashOfCreatingTartistMetadata";
     mapping(bytes32 => bool) private _usedTraitComboHashes;
 
@@ -34,7 +34,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     /**
         `traitName` will either be:
         - The name of the Trait class (ie MusicProducer)
-        - The name of the Trait with underscore then the name of the trait prop appended (ie DynMusicProductionStyle_FavoriteKeys)
+        - The name of the Trait with dot then the name of the trait prop appended (ie DynMusicProductionStyle.FavoriteKeys)
         -- In this case the TraitAI trait being added to the bot is DynMusicProductionStyle, 
         -- and the prop the value wll map to is FavoriteKeys.
         -- This flat structure will be nice for the NFT metadata to be standard and easy.
@@ -167,23 +167,34 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
 
     function setCreated(
         uint256 tokenId,
-        bytes32 cid,
+        bytes calldata cid,
         bool onTarti
     ) public onlyOwner {
         if (onTarti) {
             require(_tartiAddr != address(0), "tarticontractnotset");
             Tarti tarti = Tarti(_tartiAddr);
-            return tarti.setCreated(tokenId, string(abi.encodePacked(cid)));
+            return tarti.setCreated(tokenId, cid);
         }
         //Don't allow the URI to ever change once it is set!
-        bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant copare strings so lets compare hashes of strings
+        //We ensure that the current URL is one of the default hashes. 
+        //If its not, that means its already been set, so we will not reset it in that case.
+        bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant compare strings so lets compare hashes of strings
         if (
             tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataCid)) ||
-            tokenUriBytesHash ==
-            keccak256(abi.encodePacked(_inProcessMetadataCid))
+            tokenUriBytesHash == keccak256(abi.encodePacked(_inProcessMetadataCid))
         ) {
             _setTokenURI(tokenId, string(abi.encodePacked(cid)));
         }
+    }
+
+    function getTraits(uint256 tokenId) external view returns(uint256[] memory) {
+        return botTraits[tokenId];
+    }
+    function getTraitValues(uint256 tokenId) external view returns(string[] memory) {
+        return botTraitValues[tokenId];
+    }
+    function getTraitDominances(uint256 tokenId) external view returns(uint256[] memory) {
+        return botTraitDominances[tokenId];
     }
 
     /// @dev Overridden in order to make it an onlyOwner function
