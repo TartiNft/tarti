@@ -22,13 +22,11 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     mapping(uint256 => uint256[]) public botTraitDominances;
     mapping(uint256 => string) public availableTraits;
     mapping(uint256 => string[]) public botTraitValues;
-    string public baseTokenURI;
 
     Counters.Counter private _currentTokenId;
     address private _tartiAddr;
 
     constructor() ERC721("Tarti Artist", "TARTIST") {
-        baseTokenURI = "ipfs://";
     }
 
     /**
@@ -140,17 +138,16 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     }
 
     /// @dev Returns an URI for a given token ID
-    function _baseURI() internal view virtual override returns (string memory) {
-        return baseTokenURI;
+    function baseTokenURI() public pure returns (string memory) {
+        return "ipfs://";
+    }
+
+    function contractURI() public pure returns (string memory) {
+        return "http://tartipublicfiles.tartiart.com/Tartist.metadata.json";
     }
 
     function setTartiAddr(address tartiAddr) public onlyOwner {
         _tartiAddr = tartiAddr;
-    }
-
-    /// @dev Sets the base token URI prefix.
-    function setBaseTokenURI(string memory newBaseTokenURI) public onlyOwner {
-        baseTokenURI = newBaseTokenURI;
     }
 
     function setCreationStarted(
@@ -179,12 +176,12 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         //We ensure that the current URL is one of the default hashes. 
         //If its not, that means its already been set, so we will not reset it in that case.
         bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant compare strings so lets compare hashes of strings
-        if (
-            tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataCid)) ||
-            tokenUriBytesHash == keccak256(abi.encodePacked(_inProcessMetadataCid))
-        ) {
+        // if (
+        //     tokenUriBytesHash == keccak256(abi.encodePacked('ipfs://', _newMetadataCid)) ||
+        //     tokenUriBytesHash == keccak256(abi.encodePacked('ipfs://', _inProcessMetadataCid))
+        // ) {
             _setTokenURI(tokenId, string(abi.encodePacked(cid)));
-        }
+        // }
     }
 
     function getTraits(uint256 tokenId) external view returns(uint256[] memory) {
