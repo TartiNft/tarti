@@ -12,9 +12,10 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
 
     uint256 public constant MINT_TARTIST_PRICE = 0.18 ether;
     uint256 public constant MINT_TARTI_PRICE = 0.048 ether;
-    bytes32 private constant _newMetadataCid = "QhashOfNewTartistMetadata";
-    bytes32 private constant _inProcessMetadataCid =
-        "QhashOfCreatingTartistMetadata";
+    bytes private constant _newMetadataCid =
+        "Qmdn9VDMcfXrP9VEYB5g5qSEAZsU6JZs69d9qynETPpC6C";
+    bytes private constant _inProcessMetadataCid =
+        "QmRujo769ovCxzoBGeisQkUWn28xv1Wj1Z86jWpmKDfZBM";
     mapping(bytes32 => bool) private _usedTraitComboHashes;
 
     uint256[] public allTraits;
