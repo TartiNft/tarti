@@ -17,8 +17,9 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
     string public baseTokenURI;
     mapping(uint8 => mapping(uint256 => uint256)) private _artByArtist;
 
-    bytes32 private constant _newMetadataCid = "QhashOfNewTartistMetadata";
-    bytes32 private constant _inProcessMetadataCid = "QhashOfCreatingTartistMetadata";
+    bytes private constant _newMetadataCid = "QhashOfNewTartiMetadata";
+    bytes private constant _inProcessMetadataCid =
+        "QhashOfCreatingTartiMetadata";
 
     constructor() ERC721("Tarti Art", "TARTI") {
         //ipfs://ipfs.tarti.eth points to an ipns hash
@@ -50,15 +51,18 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
         return tokenByIndex(_artByArtist[artistId][artOrdinal]);
     }
 
-
-    function setCreationStarted(uint256 tokenId) public onlyOwner() {
+    function setCreationStarted(uint256 tokenId) public onlyOwner {
         _setTokenURI(tokenId, string(abi.encodePacked(_inProcessMetadataCid)));
     }
 
-    function setCreated(uint256 tokenId, string memory cid) public onlyOwner() {
+    function setCreated(uint256 tokenId, string memory cid) public onlyOwner {
         //Don't allow the URI to ever change once it is set!
         bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant copare strings so lets compare hashes of strings
-        if (tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataCid)) || tokenUriBytesHash == keccak256(abi.encodePacked(_inProcessMetadataCid))) {
+        if (
+            tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataCid)) ||
+            tokenUriBytesHash ==
+            keccak256(abi.encodePacked(_inProcessMetadataCid))
+        ) {
             _setTokenURI(tokenId, string(abi.encodePacked(cid)));
         }
     }
