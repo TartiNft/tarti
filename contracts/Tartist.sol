@@ -23,19 +23,16 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     mapping(uint256 => uint256[]) public botTraitDominances;
     mapping(uint256 => string) public availableTraits;
     mapping(uint256 => string[]) public botTraitValues;
-    string public baseTokenURI;
 
     Counters.Counter private _currentTokenId;
     address private _tartiAddr;
 
-    constructor() ERC721("Tarti Artist", "TARTIST") {
-        baseTokenURI = "ipfs://";
-    }
+    constructor() ERC721("Tarti Artist", "TARTIST") {}
 
     /**
         `traitName` will either be:
         - The name of the Trait class (ie MusicProducer)
-        - The name of the Trait with underscore then the name of the trait prop appended (ie DynMusicProductionStyle_FavoriteKeys)
+        - The name of the Trait with dot then the name of the trait prop appended (ie DynMusicProductionStyle.FavoriteKeys)
         -- In this case the TraitAI trait being added to the bot is DynMusicProductionStyle, 
         -- and the prop the value wll map to is FavoriteKeys.
         -- This flat structure will be nice for the NFT metadata to be standard and easy.
@@ -141,17 +138,16 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     }
 
     /// @dev Returns an URI for a given token ID
-    function _baseURI() internal view virtual override returns (string memory) {
-        return baseTokenURI;
+    function baseTokenURI() public pure returns (string memory) {
+        return "ipfs://";
+    }
+
+    function contractURI() public pure returns (string memory) {
+        return "http://tartipublicfiles.tartiart.com/Tartist.metadata.json";
     }
 
     function setTartiAddr(address tartiAddr) public onlyOwner {
         _tartiAddr = tartiAddr;
-    }
-
-    /// @dev Sets the base token URI prefix.
-    function setBaseTokenURI(string memory newBaseTokenURI) public onlyOwner {
-        baseTokenURI = newBaseTokenURI;
     }
 
     function setCreationStarted(
@@ -168,23 +164,42 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
 
     function setCreated(
         uint256 tokenId,
-        bytes32 cid,
+        bytes calldata cid,
         bool onTarti
     ) public onlyOwner {
         if (onTarti) {
             require(_tartiAddr != address(0), "tarticontractnotset");
             Tarti tarti = Tarti(_tartiAddr);
-            return tarti.setCreated(tokenId, string(abi.encodePacked(cid)));
+            return tarti.setCreated(tokenId, cid);
         }
         //Don't allow the URI to ever change once it is set!
-        bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant copare strings so lets compare hashes of strings
-        if (
-            tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataCid)) ||
-            tokenUriBytesHash ==
-            keccak256(abi.encodePacked(_inProcessMetadataCid))
-        ) {
-            _setTokenURI(tokenId, string(abi.encodePacked(cid)));
-        }
+        //We ensure that the current URL is one of the default hashes.
+        //If its not, that means its already been set, so we will not reset it in that case.
+        bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant compare strings so lets compare hashes of strings
+        // if (
+        //     tokenUriBytesHash == keccak256(abi.encodePacked('ipfs://', _newMetadataCid)) ||
+        //     tokenUriBytesHash == keccak256(abi.encodePacked('ipfs://', _inProcessMetadataCid))
+        // ) {
+        _setTokenURI(tokenId, string(abi.encodePacked(cid)));
+        // }
+    }
+
+    function getTraits(
+        uint256 tokenId
+    ) external view returns (uint256[] memory) {
+        return botTraits[tokenId];
+    }
+
+    function getTraitValues(
+        uint256 tokenId
+    ) external view returns (string[] memory) {
+        return botTraitValues[tokenId];
+    }
+
+    function getTraitDominances(
+        uint256 tokenId
+    ) external view returns (uint256[] memory) {
+        return botTraitDominances[tokenId];
     }
 
     /// @dev Overridden in order to make it an onlyOwner function

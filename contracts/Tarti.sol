@@ -55,7 +55,7 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
         _setTokenURI(tokenId, string(abi.encodePacked(_inProcessMetadataCid)));
     }
 
-    function setCreated(uint256 tokenId, string memory cid) public onlyOwner {
+    function setCreated(uint256 tokenId, bytes calldata cid) public onlyOwner {
         //Don't allow the URI to ever change once it is set!
         bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant copare strings so lets compare hashes of strings
         if (
