@@ -43,7 +43,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         string memory traitName
     ) public onlyOwner {
         require(
-            bytes(availableTraits[traitCode]).length > 0,
+            bytes(availableTraits[traitCode]).length == 0,
             "Trait already exists"
         );
         availableTraits[traitCode] = traitName;
@@ -54,6 +54,10 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         availableTraits[traitCode] = "";
 
         //doesnt provide any use to remove it from allTraits, waste of gas. So we will just leave it.
+    }
+
+    function getAllTraits() external view returns (uint256[] memory) {
+        return allTraits;
     }
 
     function giveBirth(
@@ -138,7 +142,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     }
 
     /// @dev Returns an URI for a given token ID
-    function baseTokenURI() public pure returns (string memory) {
+    function _baseURI() internal pure override returns (string memory) {
         return "ipfs://";
     }
 
