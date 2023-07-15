@@ -11,25 +11,16 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
     using Counters for Counters.Counter;
 
     Counters.Counter private _currentTokenId;
-    mapping(uint8 => uint256) public _artistNextArtId;
+    mapping(uint8 => uint256) private _artistNextArtId;
 
-    /// @dev Base token URI used as a prefix by tokenURI().
-    string public baseTokenURI;
     mapping(uint8 => mapping(uint256 => uint256)) private _artByArtist;
+    mapping(uint256 => uint8) public artCreators;
 
     bytes private constant _newMetadataCid = "QhashOfNewTartiMetadata";
     bytes private constant _inProcessMetadataCid =
         "QhashOfCreatingTartiMetadata";
 
-    constructor() ERC721("Tarti Art", "TARTI") {
-        //ipfs://ipfs.tarti.eth points to an ipns hash
-        //that points to an ipfs folder that has
-        //the implied structure in the uri below
-        //baseTokenURI = "ipfs://ipfs.tarti.eth/tarti/art/";
-
-        //decided not to use ipns or ens and just use the raw hashes
-        baseTokenURI = "ipfs://";
-    }
+    constructor() ERC721("Tarti Art", "TARTI") {}
 
     function newArt(
         address crHolder,
@@ -39,7 +30,10 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
         uint256 newArtId = _currentTokenId.current();
         _artByArtist[artistId][_artistNextArtId[artistId]] = newArtId;
         _artistNextArtId[artistId]++;
+        artCreators[newArtId] = artistId;
         _safeMint(crHolder, newArtId);
+        _setTokenURI(newArtId, string(abi.encodePacked(_newMetadataCid)));
+
         return newArtId;
     }
 
@@ -57,15 +51,19 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
 
     function setCreated(uint256 tokenId, bytes calldata cid) public onlyOwner {
         //Don't allow the URI to ever change once it is set!
-        bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant copare strings so lets compare hashes of strings
-        if (
-            tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataCid)) ||
-            tokenUriBytesHash ==
-            keccak256(abi.encodePacked(_inProcessMetadataCid))
-        ) {
+        // bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant copare strings so lets compare hashes of strings
+        // if (
+        //     tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataCid)) ||
+        //     tokenUriBytesHash ==
+        //     keccak256(abi.encodePacked(_inProcessMetadataCid))
+        // ) {
             _setTokenURI(tokenId, string(abi.encodePacked(cid)));
-        }
+        // }
     }
+
+    function _baseURI() internal pure override returns (string memory) {
+        return "ipfs://";
+    }    
 
     function _burn(
         uint256 tokenId
@@ -76,8 +74,7 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
     function tokenURI(
         uint256 tokenId
     ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
-        //I have a hunch the default impleemattn does this exact same thing so maybe we just use it??
-        return string.concat(baseTokenURI, Strings.toString(tokenId));
+        return ERC721URIStorage.tokenURI(tokenId);
     }
 
     function _beforeTokenTransfer(

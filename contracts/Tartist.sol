@@ -179,7 +179,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         //Don't allow the URI to ever change once it is set!
         //We ensure that the current URL is one of the default hashes.
         //If its not, that means its already been set, so we will not reset it in that case.
-        bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant compare strings so lets compare hashes of strings
+        //bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant compare strings so lets compare hashes of strings
         // if (
         //     tokenUriBytesHash == keccak256(abi.encodePacked('ipfs://', _newMetadataCid)) ||
         //     tokenUriBytesHash == keccak256(abi.encodePacked('ipfs://', _inProcessMetadataCid))
