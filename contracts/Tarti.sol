@@ -11,7 +11,7 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
     using Counters for Counters.Counter;
 
     Counters.Counter private _currentTokenId;
-    mapping(uint8 => uint256) private _artistNextArtId;
+    mapping(uint8 => uint256) public artistNextArtId;
 
     mapping(uint8 => mapping(uint256 => uint256)) private _artByArtist;
     mapping(uint256 => uint8) public artCreators;
@@ -28,8 +28,8 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
     ) public onlyOwner returns (uint256) {
         _currentTokenId.increment();
         uint256 newArtId = _currentTokenId.current();
-        _artByArtist[artistId][_artistNextArtId[artistId]] = newArtId;
-        _artistNextArtId[artistId]++;
+        _artByArtist[artistId][artistNextArtId[artistId]] = newArtId;
+        artistNextArtId[artistId]++;
         artCreators[newArtId] = artistId;
         _safeMint(crHolder, newArtId);
         _setTokenURI(newArtId, string(abi.encodePacked(_newMetadataCid)));
