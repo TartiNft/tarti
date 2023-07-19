@@ -16,9 +16,9 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
     mapping(uint8 => mapping(uint256 => uint256)) private _artByArtist;
     mapping(uint256 => uint8) public artCreators;
 
-    bytes private constant _newMetadataCid = "QmUMNoJhEMBhfTJdNNT2qVXWQb4oaVJ2wkLShWszfPEMMv";
+    bytes private constant _newMetadataCid = "QmSpFxcvrtxTx451K2WwbgEh9SMpXPCAZs1bsqjBSMVqdp";
     bytes private constant _inProcessMetadataCid =
-        "QmddMAcaLQwRtH3ekw8qf5HfAuHE2aHXzNSYZuT1oii1fK";
+        "QmS8ZoV9YFyxKgcRxd4USWPxVPE2zrv3gCn2FcJXdp1w7R";
 
     constructor() ERC721("Tarti Art", "TARTI") {}
 
