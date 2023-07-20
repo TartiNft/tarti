@@ -42,7 +42,7 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
         uint8 artistId,
         uint256 artOrdinal
     ) public view returns (uint256) {
-        return tokenByIndex(_artByArtist[artistId][artOrdinal]);
+        return _artByArtist[artistId][artOrdinal];
     }
 
     function setCreationStarted(uint256 tokenId) public onlyOwner {
