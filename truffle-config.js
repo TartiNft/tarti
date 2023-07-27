@@ -19,11 +19,10 @@
  */
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
+const fs = require('fs');
 const mnemonic = fs.readFileSync(".mnemonic").toString().trim();
-const quickNodeUrlMain = fs.readFileSync(".quicknode").toString().trim();;
-const quickNodeUrlSepolia = fs.readFileSync(".quicknode_test").toString().trim();;
-const walletMainPk = fs.readFileSync(".wallet").toString().trim();;
-const walletRopsteinPk = fs.readFileSync(".wallet_test").toString().trim();;
+const quickNodeUrlMain = fs.readFileSync(".quicknode").toString().trim();
+const quickNodeUrlSepolia = fs.readFileSync(".quicknode_test").toString().trim();
 
 //
 // const fs = require('fs');
@@ -72,9 +71,9 @@ module.exports = {
     // },
     // Useful for deploying to a public network.
     // NB: It's important to wrap the provider as a function.
-    ropsten: {
+    sepolia: {
       provider: () => new HDWalletProvider(mnemonic, quickNodeUrlSepolia),
-      network_id: 1,
+      network_id: 11155111,
       gas: 5000000,
       gasPrice: 5e9,
       skipDryRun: false
