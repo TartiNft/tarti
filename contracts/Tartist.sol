@@ -27,6 +27,8 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     Counters.Counter private _currentTokenId;
     address private _tartiAddr;
 
+    event PermanentURI(string _value, uint256 indexed _id);
+
     constructor() ERC721("Tarti Artist", "TARTIST") {}
 
     /**
@@ -184,7 +186,9 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         //     tokenUriBytesHash == keccak256(abi.encodePacked('ipfs://', _newMetadataCid)) ||
         //     tokenUriBytesHash == keccak256(abi.encodePacked('ipfs://', _inProcessMetadataCid))
         // ) {
-        _setTokenURI(tokenId, string(abi.encodePacked(cid)));
+        string memory newUri = string(abi.encodePacked(cid));
+        _setTokenURI(tokenId, newUri);
+        emit PermanentURI(newUri, tokenId);
         // }
     }
 

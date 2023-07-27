@@ -22,6 +22,8 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
 
     constructor() ERC721("Tarti Art", "TARTI") {}
 
+    event PermanentURI(string _value, uint256 indexed _id);
+
     function newArt(
         address crHolder,
         uint8 artistId
@@ -57,7 +59,10 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
         //     tokenUriBytesHash ==
         //     keccak256(abi.encodePacked(_inProcessMetadataCid))
         // ) {
-            _setTokenURI(tokenId, string(abi.encodePacked(cid)));
+            //@todo would it be cheap to calc twice instead of storing?
+            string memory newUri = string(abi.encodePacked(cid));
+            _setTokenURI(tokenId, newUri);
+            emit PermanentURI(newUri, tokenId);
         // }
     }
 
