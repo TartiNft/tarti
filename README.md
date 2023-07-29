@@ -6,48 +6,18 @@
 
 <div align="center">
   Tarti
-  <br />
-  <a href="#about"><strong>Explore the screenshots »</strong></a>
-  <br />
-  <br />
-  <a href="https://github.com/evandelacruz/tarti/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a>
-  ·
-  <a href="https://github.com/evandelacruz/tarti/issues/new?assignees=&labels=enhancement&template=02_FEATURE_REQUEST.md&title=feat%3A+">Request a Feature</a>
-  ·
-  <a href="https://github.com/evandelacruz/tarti/issues/new?assignees=&labels=question&template=04_SUPPORT_QUESTION.md&title=support%3A+">Ask a Question</a>
 </div>
 
 <div align="center">
 <br />
 
-[![Project license](https://img.shields.io/github/license/evandelacruz/tarti)](LICENSE) ![Commit Activity](https://img.shields.io/github/commit-activity/t/evandelacruz/tarti/dev)
+![Static Badge](https://img.shields.io/badge/Ethereum-Sepolia-blue?logo=ethereum)
+![Static Badge](https://img.shields.io/badge/OpenZepplin--Contracts-%5E4.9.2-blue?logo=openzeppelin)
+![Static Badge](https://img.shields.io/badge/Solidity-0.8.18-blue?logo=Solidity)
+![Static Badge](https://img.shields.io/npm/v/npm.svg?logo=npm)
+![Commit Activity](https://img.shields.io/github/commit-activity/t/evandelacruz/tarti/dev)
 
 </div>
-
-<details open="open">
-<summary>Table of Contents</summary>
-
-- [About](#about)
-  - [Tartist](#tartist)
-  - [Tarti](#tarti)
-  - [Off-chain Interactions](#off-chain-interactions)
-  - [Dapp](#dapp)
-  - [System Diagram](#system-diagram)
-  - [Token rights](#token-rights)
-  - [Built With](#built-with)
-- [Usage](#usage)
-  - [Tartist](#tartist-1)
-  - [Tarti](#tarti-1)
-- [Roadmap](#roadmap)
-- [Support](#support)
-- [Project assistance](#project-assistance)
-- [Contributing](#contributing)
-- [Authors \& contributors](#authors--contributors)
-- [Security](#security)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
-
-</details>
 
 ---
 
