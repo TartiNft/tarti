@@ -28,6 +28,9 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     mapping(uint256 => string) public availableTraits;
     mapping(uint256 => string[]) public botTraitValues;
 
+    //Tartist owner can set to greater than zero, allowing other to use their Tartist to make art
+    mapping(uint256 => uint256) public tartiRoyaltyRate;
+
     Counters.Counter private _currentTokenId;
     address private _tartiAddr;
 
@@ -118,33 +121,49 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         botTraitDominances[newItemId] = traitDominance;
         _safeMint(recipient, newItemId);
         _setTokenURI(newItemId, string(abi.encodePacked(_newMetadataCid)));
+
+        _asyncTransfer(owner(), MINT_TARTIST_PRICE);
         return newItemId;
+    }
+
+    function setRoyaltyRate(uint8 artistId, uint256 ratePerTarti) public {
+        require(msg.sender == ownerOf(artistId), "norights");
+        tartiRoyaltyRate[artistId] = ratePerTarti;
     }
 
     function newArt(uint8 artistId) public payable returns (uint256) {
         //address canot be blank
         require(_tartiAddr != address(0), "tarticontractnotset");
-        require(msg.value == MINT_TARTI_PRICE, "must send commission"); //.01 eth
 
         //call newArt on the Tarti contract
         //Tarti only allows this contract to call that method
-        //Tell the new art method who the artist is
-
-        //First check that the caller is the owner of the artist
-        //if an artist has no owner, I forget who is allowed to use it? (maybe anyone but only if I get commissions)
-        //thats a good idea. For ownerless i get commissions. for owned I dont
+        //First check that the caller is allowed to use this tartist, either by owning it or paying royalties
 
         //norights = specified artist is not contractually obligated, nor even allowed, to make any art for you.
-        require(msg.sender == ownerOf(artistId), "norights");
+        if (tartiRoyaltyRate[artistId] == 0) {
+            //if royalty rate is not set, then only the owner can make art with this Tartist
+            require(msg.sender == ownerOf(artistId), "norights");
+            require(msg.value == MINT_TARTI_PRICE, "must send commission"); //.018 eth
+        }
+        if (tartiRoyaltyRate[artistId] > 0) {
+            //if royalty rate is not set, then anyone can make art with this Tartist but they must pay the royalty.
+            require(msg.value == MINT_TARTI_PRICE + tartiRoyaltyRate[artistId], "must send commission and royalties"); //.018 eth + royalty
 
-        //use the art contract to create a new Tart token
-        //Trait engine will see the new Art on the blockchain and create the art
-        //the art package url will be based on the Tart tokenId
-        //we will own the dns of whatever we use for IPFS so we can pre generate here and guarantee to have it
+            //mark the royalty as payable to Tartist owner (can be withdrawn using pull payment)
+            _asyncTransfer(ownerOf(artistId), tartiRoyaltyRate[artistId]);
+        }
+
+        //use the Tarti contract to create a new Tarti token
+        //Trait engine will see the new Tarti on the blockchain and create the art/music
 
         Tarti tarti = Tarti(_tartiAddr);
 
-        return tarti.newArt(msg.sender, artistId);
+        //mint the tarti token
+        uint256 newTartiToken = tarti.newArt(msg.sender, artistId);
+
+        //mark payment payable to contract owner
+        _asyncTransfer(owner(), MINT_TARTIST_PRICE);
+        return newTartiToken;
     }
 
     /// @dev Returns an URI for a given token ID
@@ -213,10 +232,13 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         return botTraitDominances[tokenId];
     }
 
-    /// @dev Overridden in order to make it an onlyOwner function
+    /// @dev Overridden in order to retrict caller to payee or owner
     function withdrawPayments(
         address payable payee
-    ) public virtual override onlyOwner {
+    ) public virtual override {
+        //Only allow payee to request withdrawl.
+        //Help protect against gas forwarding attack.
+        require(msg.sender == payee || msg.sender == owner(), "unauth withdrawl");
         super.withdrawPayments(payee);
     }
 
