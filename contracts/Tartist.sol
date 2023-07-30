@@ -23,6 +23,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     mapping(bytes32 => bool) private _usedTraitComboHashes;
 
     uint256[] public allTraits;
+    mapping(string => uint256) private _allTraitsByName;
     mapping(uint256 => uint256[]) public botTraits;
     mapping(uint256 => uint256[]) public botTraitDominances;
     mapping(uint256 => string) public availableTraits;
@@ -53,16 +54,25 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     ) public onlyOwner {
         require(
             bytes(availableTraits[traitCode]).length == 0,
-            "Trait already exists"
+            "Trait id already exists"
+        );
+        require(
+            _allTraitsByName[traitName] == 0,
+            "Trait name already exists"
         );
         availableTraits[traitCode] = traitName;
+        _allTraitsByName[traitName] = traitCode;
         allTraits.push(traitCode);
     }
 
     function cancelTrait(uint256 traitCode) public onlyOwner {
+        _allTraitsByName[availableTraits[traitCode]] = 0;
         availableTraits[traitCode] = "";
 
-        //doesnt provide any use to remove it from allTraits, waste of gas. So we will just leave it.
+        //Doesnt provide any use to remove it from allTraits, 
+        //and it is kinda expensive cuz will need to 
+        //shift entire array.
+        //waste of gas. So we will just leave it.
     }
 
     function getAllTraits() external view returns (uint256[] memory) {
