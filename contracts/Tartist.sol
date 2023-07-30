@@ -14,8 +14,12 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     uint256 public constant MINT_TARTI_PRICE = 0.048 ether;
     bytes private constant _newMetadataCid =
         "Qmdn9VDMcfXrP9VEYB5g5qSEAZsU6JZs69d9qynETPpC6C";
+    bytes private constant _newMetadataUri =
+        "ipfs://Qmdn9VDMcfXrP9VEYB5g5qSEAZsU6JZs69d9qynETPpC6C";
     bytes private constant _inProcessMetadataCid =
         "QmRujo769ovCxzoBGeisQkUWn28xv1Wj1Z86jWpmKDfZBM";
+    bytes private constant _inProcessMetadataUri =
+        "ipfs://QmRujo769ovCxzoBGeisQkUWn28xv1Wj1Z86jWpmKDfZBM";
     mapping(bytes32 => bool) private _usedTraitComboHashes;
 
     uint256[] public allTraits;
@@ -165,6 +169,10 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
             Tarti tarti = Tarti(_tartiAddr);
             return tarti.setCreationStarted(tokenId);
         }
+
+        bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId)));
+        require(tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataUri)), "tartistnotnew");
+
         _setTokenURI(tokenId, string(abi.encodePacked(_inProcessMetadataCid)));
     }
 
@@ -178,18 +186,13 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
             Tarti tarti = Tarti(_tartiAddr);
             return tarti.setCreated(tokenId, cid);
         }
-        //Don't allow the URI to ever change once it is set!
-        //We ensure that the current URL is one of the default hashes.
-        //If its not, that means its already been set, so we will not reset it in that case.
-        //bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant compare strings so lets compare hashes of strings
-        // if (
-        //     tokenUriBytesHash == keccak256(abi.encodePacked('ipfs://', _newMetadataCid)) ||
-        //     tokenUriBytesHash == keccak256(abi.encodePacked('ipfs://', _inProcessMetadataCid))
-        // ) {
+
+        bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId)));
+        require(tokenUriBytesHash == keccak256(abi.encodePacked(_inProcessMetadataUri)), "tartistnotstarted");
+
         string memory newUri = string(abi.encodePacked(cid));
         _setTokenURI(tokenId, newUri);
         emit PermanentURI(newUri, tokenId);
-        // }
     }
 
     function getTraits(

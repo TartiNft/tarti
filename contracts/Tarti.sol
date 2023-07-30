@@ -16,8 +16,11 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
     mapping(uint256 => uint8) public artCreators;
 
     bytes private constant _newMetadataCid = "QmSpFxcvrtxTx451K2WwbgEh9SMpXPCAZs1bsqjBSMVqdp";
+    bytes private constant _newMetadataUri = "ipfs://QmSpFxcvrtxTx451K2WwbgEh9SMpXPCAZs1bsqjBSMVqdp";
     bytes private constant _inProcessMetadataCid =
         "QmS8ZoV9YFyxKgcRxd4USWPxVPE2zrv3gCn2FcJXdp1w7R";
+    bytes private constant _inProcessMetadataUri =
+        "ipfs://QmS8ZoV9YFyxKgcRxd4USWPxVPE2zrv3gCn2FcJXdp1w7R";
 
     constructor() ERC721("Tarti Art", "TARTI") {}
 
@@ -47,22 +50,24 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
     }
 
     function setCreationStarted(uint256 tokenId) public onlyOwner {
+        //Don't allow the URI to ever change once it is set!
+        //Can't compare strings, so lets compare their hashes
+        bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId)));
+        require(tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataUri)), "tartinotnew");
+
         _setTokenURI(tokenId, string(abi.encodePacked(_inProcessMetadataCid)));
     }
 
     function setCreated(uint256 tokenId, bytes calldata cid) public onlyOwner {
         //Don't allow the URI to ever change once it is set!
-        // bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId))); //cant copare strings so lets compare hashes of strings
-        // if (
-        //     tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataCid)) ||
-        //     tokenUriBytesHash ==
-        //     keccak256(abi.encodePacked(_inProcessMetadataCid))
-        // ) {
-            //@todo would it be cheap to calc twice instead of storing?
-            string memory newUri = string(abi.encodePacked(cid));
-            _setTokenURI(tokenId, newUri);
-            emit PermanentURI(newUri, tokenId);
-        // }
+        //Can't compare strings, so lets compare their hashes
+        bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId)));
+        require(tokenUriBytesHash == keccak256(abi.encodePacked(_inProcessMetadataUri)), "tartinotstarted");
+
+        //@todo would it be cheaper to calc twice instead of storing?
+        string memory newUri = string(abi.encodePacked(cid));
+        _setTokenURI(tokenId, newUri);
+        emit PermanentURI(newUri, tokenId);
     }
 
     function _baseURI() internal pure override returns (string memory) {
