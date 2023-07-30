@@ -66,8 +66,8 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     }
 
     function cancelTrait(uint256 traitCode) public onlyOwner {
-        availableTraits[traitCode] = "";
         _allTraitsByName[availableTraits[traitCode]] = 0;
+        availableTraits[traitCode] = "";
 
         //Doesnt provide any use to remove it from allTraits, 
         //and it is kinda expensive cuz will need to 
