@@ -40,13 +40,14 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     constructor() ERC721("Tarti Artist", "TARTIST") {}
 
     /**
-        `traitName` will either be:
-        - The name of the Trait class (ie MusicProducer)
-        - The name of the Trait with dot then the name of the trait prop appended (ie DynMusicProductionStyle.FavoriteKeys)
-        -- In this case the TraitAI trait being added to the bot is DynMusicProductionStyle, 
-        -- and the prop the value wll map to is FavoriteKeys.
-        -- This flat structure will be nice for the NFT metadata to be standard and easy.
-        -- When it gets sent into the TraitHttpIO we will need to pull out the props and put them all beneath the same single trait.
+    @dev
+    `traitName` will either be:
+    - The name of the Trait class (ie MusicProducer)
+    - The name of the Trait with dot then the name of the trait prop appended (ie DynMusicProductionStyle.FavoriteKeys)
+    -- In this case the TraitAI trait being added to the bot is DynMusicProductionStyle, 
+    -- and the prop the value wll map to is FavoriteKeys.
+    -- This flat structure will be nice for the NFT metadata to be standard and easy.
+    -- When it gets sent into the TraitHttpIO we will need to pull out the props and put them all beneath the same single trait.
      */
     function addTrait(
         uint256 traitCode,
@@ -68,11 +69,6 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     function cancelTrait(uint256 traitCode) public onlyOwner {
         _allTraitsByName[availableTraits[traitCode]] = 0;
         availableTraits[traitCode] = "";
-
-        //Doesnt provide any use to remove it from allTraits, 
-        //and it is kinda expensive cuz will need to 
-        //shift entire array.
-        //waste of gas. So we will just leave it.
     }
 
     function getAllTraits() external view returns (uint256[] memory) {
@@ -87,22 +83,19 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     ) public payable returns (uint256) {
         require(
             msg.value == MINT_TARTIST_PRICE,
-            "Transaction value did not equal the mint price"
+            "missingcommission"
         );
-        require(traits.length < 100, "Too many traits");
-        require(dynamicTraitValues.length < 100, "Too many trait values");
-        require(traitDominance.length < 100, "Too many trait dominance");
+        require(traits.length < 100, "toomanytraits");
+        require(dynamicTraitValues.length < 100, "toomanytraitvals");
+        require(traitDominance.length < 100, "toomanytraitdoms");
 
-        //check that the passed traits are valid
         for (uint256 i = 0; i < traits.length; i++) {
             require(
                 bytes(availableTraits[traits[i]]).length > 0,
-                "Invalid trait specified"
+                "invalidtrait"
             );
         }
 
-        //can optimize the heck out of this stuff but resisting for now.
-        //Dont set storage vars in loops!
         bytes memory traitBytes;
         for (uint256 i = 0; i < traits.length; i++) {
             traitBytes = abi.encodePacked(traitBytes, traits[i]);
@@ -120,7 +113,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         );
         require(
             _usedTraitComboHashes[botTraitsHash] != true,
-            "Bot genetics are not unique enough"
+            "geneticcopy"
         );
 
         _usedTraitComboHashes[botTraitsHash] = true;
@@ -153,11 +146,11 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         if (tartiRoyaltyRate[artistId] == 0) {
             //if royalty rate is not set, then only the owner can make art with this Tartist
             require(msg.sender == ownerOf(artistId), "norights");
-            require(msg.value == MINT_TARTI_PRICE, "must send commission"); //.018 eth
+            require(msg.value == MINT_TARTI_PRICE, "missingcommission"); //.018 eth
         }
         if (tartiRoyaltyRate[artistId] > 0) {
             //if royalty rate is not set, then anyone can make art with this Tartist but they must pay the royalty.
-            require(msg.value == MINT_TARTI_PRICE + tartiRoyaltyRate[artistId], "must send commission and royalties"); //.018 eth + royalty
+            require(msg.value == MINT_TARTI_PRICE + tartiRoyaltyRate[artistId], "missingcommissionroyals"); //.018 eth + royalty
 
             //mark the royalty as payable to Tartist owner (can be withdrawn using pull payment)
             _asyncTransfer(ownerOf(artistId), tartiRoyaltyRate[artistId]);
@@ -248,7 +241,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     ) public virtual override {
         //Only allow payee to request withdrawl.
         //Help protect against gas forwarding attack.
-        require(msg.sender == payee || msg.sender == owner(), "unauth withdrawl");
+        require(msg.sender == payee || msg.sender == owner(), "unauthwithdrawl");
         super.withdrawPayments(payee);
     }
 
