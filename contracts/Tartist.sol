@@ -172,7 +172,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         uint256 newTartiToken = tarti.newArt(msg.sender, artistId);
 
         //mark payment payable to contract owner
-        _asyncTransfer(owner(), MINT_TARTIST_PRICE);
+        _asyncTransfer(owner(), MINT_TARTI_PRICE);
         return newTartiToken;
     }
 
