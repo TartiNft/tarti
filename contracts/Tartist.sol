@@ -53,14 +53,8 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         uint256 traitCode,
         string memory traitName
     ) public onlyOwner {
-        require(
-            bytes(availableTraits[traitCode]).length == 0,
-            "Trait id already exists"
-        );
-        require(
-            _allTraitsByName[traitName] == 0,
-            "Trait name already exists"
-        );
+        require(bytes(availableTraits[traitCode]).length == 0, "traitiddup");
+        require(_allTraitsByName[traitName] == 0, "traitdup");
         availableTraits[traitCode] = traitName;
         _allTraitsByName[traitName] = traitCode;
         allTraits.push(traitCode);
@@ -75,16 +69,17 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         return allTraits;
     }
 
+    /**
+    Mint a TARTIST token
+    This function `giveBrith` should be used in place of the traditional `mintTo`. 
+    */
     function giveBirth(
         address recipient,
         uint256[] memory traits,
         string[] memory dynamicTraitValues,
         uint8[] memory traitDominance
     ) public payable returns (uint256) {
-        require(
-            msg.value == MINT_TARTIST_PRICE,
-            "missingcommission"
-        );
+        require(msg.value == MINT_TARTIST_PRICE, "missingcommission");
         require(traits.length < 100, "toomanytraits");
         require(dynamicTraitValues.length < 100, "toomanytraitvals");
         require(traitDominance.length < 100, "toomanytraitdoms");
@@ -111,10 +106,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         bytes32 botTraitsHash = keccak256(
             bytes.concat(traitBytes, dynTraitValuesBytes)
         );
-        require(
-            _usedTraitComboHashes[botTraitsHash] != true,
-            "geneticcopy"
-        );
+        require(_usedTraitComboHashes[botTraitsHash] != true, "geneticcopy");
 
         _usedTraitComboHashes[botTraitsHash] = true;
         _currentTokenId.increment();
@@ -134,6 +126,12 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         tartiRoyaltyRate[artistId] = ratePerTarti;
     }
 
+    /**
+    Mint a TARTI token.
+    You cannot mint a TARTI token directly on the TARTI contract.
+    You must do it through this (TARTIST) contract using the `newArt` function.
+    Minter must send MINT_TARTI_PRICE + whatever royalty the TARTIST owner has set.
+    */
     function newArt(uint8 artistId) public payable returns (uint256) {
         //address canot be blank
         require(_tartiAddr != address(0), "tarticontractnotset");
@@ -150,7 +148,10 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         }
         if (tartiRoyaltyRate[artistId] > 0) {
             //if royalty rate is not set, then anyone can make art with this Tartist but they must pay the royalty.
-            require(msg.value == MINT_TARTI_PRICE + tartiRoyaltyRate[artistId], "missingcommissionroyals"); //.018 eth + royalty
+            require(
+                msg.value == MINT_TARTI_PRICE + tartiRoyaltyRate[artistId],
+                "missingcommissionroyals"
+            ); //.018 eth + royalty
 
             //mark the royalty as payable to Tartist owner (can be withdrawn using pull payment)
             _asyncTransfer(ownerOf(artistId), tartiRoyaltyRate[artistId]);
@@ -193,7 +194,10 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         }
 
         bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId)));
-        require(tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataUri)), "tartistnotnew");
+        require(
+            tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataUri)),
+            "tartistnotnew"
+        );
 
         _setTokenURI(tokenId, string(abi.encodePacked(_inProcessMetadataCid)));
     }
@@ -210,7 +214,11 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         }
 
         bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId)));
-        require(tokenUriBytesHash == keccak256(abi.encodePacked(_inProcessMetadataUri)), "tartistnotstarted");
+        require(
+            tokenUriBytesHash ==
+                keccak256(abi.encodePacked(_inProcessMetadataUri)),
+            "tartistnotstarted"
+        );
 
         string memory newUri = string(abi.encodePacked(cid));
         _setTokenURI(tokenId, newUri);
@@ -236,12 +244,13 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     }
 
     /// @dev Overridden in order to retrict caller to payee or owner
-    function withdrawPayments(
-        address payable payee
-    ) public virtual override {
+    function withdrawPayments(address payable payee) public virtual override {
         //Only allow payee to request withdrawl.
         //Help protect against gas forwarding attack.
-        require(msg.sender == payee || msg.sender == owner(), "unauthwithdrawl");
+        require(
+            msg.sender == payee || msg.sender == owner(),
+            "unauthwithdrawl"
+        );
         super.withdrawPayments(payee);
     }
 
