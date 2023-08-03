@@ -15,12 +15,17 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
     mapping(uint8 => mapping(uint256 => uint256)) private _artByArtist;
     mapping(uint256 => uint8) public artCreators;
 
-    bytes private constant _newMetadataCid = "QmSpFxcvrtxTx451K2WwbgEh9SMpXPCAZs1bsqjBSMVqdp";
-    bytes private constant _newMetadataUri = "ipfs://QmSpFxcvrtxTx451K2WwbgEh9SMpXPCAZs1bsqjBSMVqdp";
+    bytes private constant _newMetadataCid =
+        "QmVv7nzTAY8gZEVXGWbxEeGRHhwXzcL2C1XNaYVBoWhvUA";
+
+    bytes private constant _newMetadataUri =
+        "ipfs://QmVv7nzTAY8gZEVXGWbxEeGRHhwXzcL2C1XNaYVBoWhvUA";
+
     bytes private constant _inProcessMetadataCid =
-        "QmS8ZoV9YFyxKgcRxd4USWPxVPE2zrv3gCn2FcJXdp1w7R";
+        "QmbPGGNUY8zfyEjr1rWTnEFfpNoyppWrutNWCgZYu3WM4F";
+
     bytes private constant _inProcessMetadataUri =
-        "ipfs://QmS8ZoV9YFyxKgcRxd4USWPxVPE2zrv3gCn2FcJXdp1w7R";
+        "ipfs://QmbPGGNUY8zfyEjr1rWTnEFfpNoyppWrutNWCgZYu3WM4F";
 
     constructor() ERC721("Tarti Art", "TARTI") {}
 
@@ -53,7 +58,10 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
         //Don't allow the URI to ever change once it is set!
         //Can't compare strings, so lets compare their hashes
         bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId)));
-        require(tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataUri)), "tartinotnew");
+        require(
+            tokenUriBytesHash == keccak256(abi.encodePacked(_newMetadataUri)),
+            "tartinotnew"
+        );
 
         _setTokenURI(tokenId, string(abi.encodePacked(_inProcessMetadataCid)));
     }
@@ -62,7 +70,11 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
         //Don't allow the URI to ever change once it is set!
         //Can't compare strings, so lets compare their hashes
         bytes32 tokenUriBytesHash = keccak256(bytes(tokenURI(tokenId)));
-        require(tokenUriBytesHash == keccak256(abi.encodePacked(_inProcessMetadataUri)), "tartinotstarted");
+        require(
+            tokenUriBytesHash ==
+                keccak256(abi.encodePacked(_inProcessMetadataUri)),
+            "tartinotstarted"
+        );
 
         //@todo would it be cheaper to calc twice instead of storing?
         string memory newUri = string(abi.encodePacked(cid));
@@ -72,7 +84,7 @@ contract Tarti is ERC721URIStorage, ERC721Enumerable, Ownable {
 
     function _baseURI() internal pure override returns (string memory) {
         return "ipfs://";
-    }    
+    }
 
     function _burn(
         uint256 tokenId
