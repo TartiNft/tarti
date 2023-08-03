@@ -69,6 +69,10 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         return allTraits;
     }
 
+    /**
+    Mint a TARTIST token
+    This function `giveBrith` should be used in place of the traditional `mintTo`. 
+    */
     function giveBirth(
         address recipient,
         uint256[] memory traits,
@@ -122,6 +126,12 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         tartiRoyaltyRate[artistId] = ratePerTarti;
     }
 
+    /**
+    Mint a TARTI token.
+    You cannot mint a TARTI token directly on the TARTI contract.
+    You must do it through this (TARTIST) contract using the `newArt` function.
+    Minter must send MINT_TARTI_PRICE + whatever royalty the TARTIST owner has set.
+    */
     function newArt(uint8 artistId) public payable returns (uint256) {
         //address canot be blank
         require(_tartiAddr != address(0), "tarticontractnotset");
