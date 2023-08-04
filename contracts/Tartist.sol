@@ -10,8 +10,8 @@ import "./Tarti.sol";
 contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     using Counters for Counters.Counter;
 
-    uint256 public constant MINT_TARTIST_PRICE = 0.18 ether;
-    uint256 public constant MINT_TARTI_PRICE = 0.048 ether;
+    uint256 public constant MINT_TARTIST_PRICE = 0.17 ether;
+    uint256 public constant MINT_TARTI_PRICE = 0.047 ether;
     bytes private constant _newMetadataCid =
         "QmYKXrpFmABTH7VwfMWvXXRtMJWDcTTmB3vQXSSd2rEkYR";
     bytes private constant _newMetadataUri =
