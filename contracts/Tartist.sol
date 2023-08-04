@@ -20,7 +20,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     mapping(bytes32 => bool) private _usedTraitComboHashes;
 
     //Tartist owner can set to greater than zero, allowing other to use their Tartist to make art
-    mapping(uint256 => uint256) public tartiRoyaltyRate;
+    mapping(uint8 => uint256) public tartiRoyaltyRate;
 
     address private _tartiAddr;
     Counters.Counter private _currentTokenId;
@@ -121,7 +121,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         return newItemId;
     }
 
-    function setRoyaltyRate(uint256 artistId, uint256 ratePerTarti) public {
+    function setRoyaltyRate(uint8 artistId, uint256 ratePerTarti) public {
         require(msg.sender == ownerOf(artistId), "norights");
         tartiRoyaltyRate[artistId] = ratePerTarti;
     }
@@ -132,7 +132,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     You must do it through this (TARTIST) contract using the `newArt` function.
     Minter must send MINT_TARTI_PRICE + whatever royalty the TARTIST owner has set.
     */
-    function newArt(uint256 artistId) public payable returns (uint256) {
+    function newArt(uint8 artistId) public payable returns (uint256) {
         //address canot be blank
         require(_tartiAddr != address(0), "tarticontractnotset");
 
