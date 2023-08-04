@@ -12,6 +12,20 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
 
     uint256 public constant MINT_TARTIST_PRICE = 0.18 ether;
     uint256 public constant MINT_TARTI_PRICE = 0.048 ether;
+    uint256[] public allTraits;
+    mapping(uint256 => uint256[]) public botTraits;
+    mapping(uint256 => uint256[]) public botTraitDominances;
+    mapping(uint256 => string) public availableTraits;
+    mapping(uint256 => string[]) public botTraitValues;
+    mapping(bytes32 => bool) private _usedTraitComboHashes;
+
+    //Tartist owner can set to greater than zero, allowing other to use their Tartist to make art
+    mapping(uint256 => uint256) public tartiRoyaltyRate;
+
+    address private _tartiAddr;
+    Counters.Counter private _currentTokenId;
+    mapping(string => uint256) private _allTraitsByName;
+
     bytes private constant _newMetadataCid =
         "QmYKXrpFmABTH7VwfMWvXXRtMJWDcTTmB3vQXSSd2rEkYR";
     bytes private constant _newMetadataUri =
@@ -20,20 +34,6 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         "QmXUHvDvfFkk6f4GeiX5tpENh2aAyHYwp5BuzEhCTo79kF";
     bytes private constant _inProcessMetadataUri =
         "ipfs://QmXUHvDvfFkk6f4GeiX5tpENh2aAyHYwp5BuzEhCTo79kF";
-    mapping(bytes32 => bool) private _usedTraitComboHashes;
-
-    uint256[] public allTraits;
-    mapping(string => uint256) private _allTraitsByName;
-    mapping(uint256 => uint256[]) public botTraits;
-    mapping(uint256 => uint256[]) public botTraitDominances;
-    mapping(uint256 => string) public availableTraits;
-    mapping(uint256 => string[]) public botTraitValues;
-
-    //Tartist owner can set to greater than zero, allowing other to use their Tartist to make art
-    mapping(uint256 => uint256) public tartiRoyaltyRate;
-
-    Counters.Counter private _currentTokenId;
-    address private _tartiAddr;
 
     event PermanentURI(string _value, uint256 indexed _id);
 
@@ -121,7 +121,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
         return newItemId;
     }
 
-    function setRoyaltyRate(uint8 artistId, uint256 ratePerTarti) public {
+    function setRoyaltyRate(uint256 artistId, uint256 ratePerTarti) public {
         require(msg.sender == ownerOf(artistId), "norights");
         tartiRoyaltyRate[artistId] = ratePerTarti;
     }
@@ -132,7 +132,7 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     You must do it through this (TARTIST) contract using the `newArt` function.
     Minter must send MINT_TARTI_PRICE + whatever royalty the TARTIST owner has set.
     */
-    function newArt(uint8 artistId) public payable returns (uint256) {
+    function newArt(uint256 artistId) public payable returns (uint256) {
         //address canot be blank
         require(_tartiAddr != address(0), "tarticontractnotset");
 
