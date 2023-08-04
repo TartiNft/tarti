@@ -1,6 +1,6 @@
 <h1 align="center">
   <a href="https://github.com/evandelacruz/tarti">
-    <img src="TartiCoinLogo.png" alt="Logo" width="100" height="100">
+    <img src="docs/images/TartiCoinLogo.png" alt="Logo" width="100" height="100">
   </a>
 </h1>
 
