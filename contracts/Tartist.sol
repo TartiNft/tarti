@@ -49,15 +49,18 @@ contract Tartist is ERC721URIStorage, ERC721Enumerable, PullPayment, Ownable {
     -- This flat structure will be nice for the NFT metadata to be standard and easy.
     -- When it gets sent into the TraitHttpIO we will need to pull out the props and put them all beneath the same single trait.
      */
-    function addTrait(
-        uint256 traitCode,
-        string memory traitName
+    function addTraits(
+        uint256[] calldata traitCode,
+        string[] calldata traitName
     ) public onlyOwner {
-        require(bytes(availableTraits[traitCode]).length == 0, "traitiddup");
-        require(_allTraitsByName[traitName] == 0, "traitdup");
-        availableTraits[traitCode] = traitName;
-        _allTraitsByName[traitName] = traitCode;
-        allTraits.push(traitCode);
+
+        for (uint i = 0; i < traitCode.length; i++) {
+            require(bytes(availableTraits[traitCode[i]]).length == 0, "traitiddup");
+            require(_allTraitsByName[traitName[i]] == 0, "traitdup");
+            availableTraits[traitCode[i]] = traitName[i];
+            _allTraitsByName[traitName[i]] = traitCode[i];
+            allTraits.push(traitCode[i]);
+        }
     }
 
     function cancelTrait(uint256 traitCode) public onlyOwner {
